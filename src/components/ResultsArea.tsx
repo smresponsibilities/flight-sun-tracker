@@ -517,7 +517,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
-                  Fill out the flight information above and click "Find Best Seat" to get personalized recommendations based on sun exposure patterns.
+                  Fill out the flight information above and click &ldquo;Find Best Seat&rdquo; to get personalized recommendations based on sun exposure patterns.
                 </motion.p>
                 <div className={styles.features}>
                   <ul className={cn(styles.featureList, "space-y-4")} role="list">

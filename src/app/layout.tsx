@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="background-spotlight">
+      <body className={`${geistSans.variable} ${geistMono.variable} background-spotlight`}>
         {children}
       </body>
     </html>

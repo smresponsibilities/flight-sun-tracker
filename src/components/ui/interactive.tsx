@@ -266,10 +266,10 @@ export function GradientText({
 
     const interval = setInterval(() => {
       setTime((prev) => (prev + 1) % 360);
-    }, 50);
+    }, duration * 1000 / 360); // Use duration parameter
 
     return () => clearInterval(interval);
-  }, [animate]);
+  }, [animate, duration]);
 
   const baseTextClasses = "font-bold";
   const gradientClasses = animate
@@ -374,13 +374,14 @@ export function SpotlightContainer({
       {/* Spotlight effect */}
       {isHovering && (
         <div
-          className="absolute pointer-events-none z-10 opacity-70 mix-blend-soft-light"
+          className="absolute pointer-events-none z-10 mix-blend-soft-light"
           style={{
             width: spotlightSize,
             height: spotlightSize,
             background: `radial-gradient(circle, ${spotlightColor} 0%, transparent 70%)`,
             transform: `translate(${mousePosition.x - spotlightSize / 2}px, ${mousePosition.y - spotlightSize / 2}px)`,
             transition: "transform 0.1s ease-out",
+            opacity: intensity, // Use intensity parameter
           }}
         />
       )}
