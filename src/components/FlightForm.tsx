@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import styles from './FlightForm.module.css';
+import AutocompleteInput from './AutocompleteInput';
 
 interface FlightFormData {
   sourceCity: string;
@@ -42,6 +43,16 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
   const [fieldErrors, setFieldErrors] = useState<Partial<FlightFormData>>({});
   const [touched, setTouched] = useState<TouchedFields>({});
 
+  // Helper function to normalize airport values for comparison
+  const normalizeAirportValue = (value: string): string => {
+    // If it's a 3-letter IATA code, return it as-is
+    if (/^[A-Z]{3}$/i.test(value.trim())) {
+      return value.trim().toUpperCase();
+    }
+    // Otherwise, return the original value for other validation
+    return value.trim().toLowerCase();
+  };
+
   // Validation functions
   const validateField = (field: keyof FlightFormData, value: string): string | null => {
     switch (field) {
@@ -53,8 +64,13 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
       case 'destinationCity':
         if (!value.trim()) return 'Destination city is required';
         if (value.trim().length < 3) return 'Please enter at least 3 characters';
-        if (value.trim().toLowerCase() === formData.sourceCity.trim().toLowerCase()) {
-          return 'Destination must be different from source city';
+        
+        // Enhanced same-airport validation
+        const sourceNormalized = normalizeAirportValue(formData.sourceCity);
+        const destNormalized = normalizeAirportValue(value);
+        
+        if (sourceNormalized === destNormalized) {
+          return 'Destination must be different from source airport';
         }
         return null;
       
@@ -185,10 +201,9 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
     <form className={styles.form} action={formAction} onSubmit={handleSubmit} role="form" aria-label="Flight information form">
       <div className={styles.formGroup}>
         <label htmlFor="sourceCity" className={styles.label}>
-          Source City
+          Source Airport
         </label>
-        <input
-          type="text"
+        <AutocompleteInput
           id="sourceCity"
           name="sourceCity"
           className={`${styles.input} ${fieldErrors.sourceCity ? styles.inputError : ''}`}
@@ -198,7 +213,8 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
           required
           aria-describedby="sourceCity-desc sourceCity-error"
           aria-invalid={!!fieldErrors.sourceCity}
-          placeholder="e.g. New York, JFK, Los Angeles, London"
+          placeholder="Type airport code, city, or airport name"
+          excludeValue={normalizeAirportValue(formData.destinationCity)}
         />
         {fieldErrors.sourceCity && (
           <span id="sourceCity-error" className={styles.errorText} role="alert">
@@ -206,16 +222,15 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
           </span>
         )}
         <span id="sourceCity-desc" className={styles.description}>
-          City where your flight departs from
+          Search for departure airport by name, city, or IATA code
         </span>
       </div>
 
       <div className={styles.formGroup}>
         <label htmlFor="destinationCity" className={styles.label}>
-          Destination City
+          Destination Airport
         </label>
-        <input
-          type="text"
+        <AutocompleteInput
           id="destinationCity"
           name="destinationCity"
           className={`${styles.input} ${fieldErrors.destinationCity ? styles.inputError : ''}`}
@@ -225,7 +240,8 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
           required
           aria-describedby="destinationCity-desc destinationCity-error"
           aria-invalid={!!fieldErrors.destinationCity}
-          placeholder="e.g. Paris, CDG, Tokyo, Sydney"
+          placeholder="Type airport code, city, or airport name"
+          excludeValue={normalizeAirportValue(formData.sourceCity)}
         />
         {fieldErrors.destinationCity && (
           <span id="destinationCity-error" className={styles.errorText} role="alert">
@@ -233,7 +249,7 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
           </span>
         )}
         <span id="destinationCity-desc" className={styles.description}>
-          City where your flight arrives
+          Search for arrival airport by name, city, or IATA code
         </span>
       </div>
 

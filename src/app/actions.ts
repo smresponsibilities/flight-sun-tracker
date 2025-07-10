@@ -168,6 +168,12 @@ function parseDurationToMinutes(duration: string): number | null {
 function mapCityToIATA(cityName: string): string {
   const city = cityName.toLowerCase().trim();
   
+  // Check if input contains IATA code in parentheses (from autocomplete display text)
+  const iataMatch = cityName.match(/\(([A-Z]{3})\)$/i);
+  if (iataMatch) {
+    return iataMatch[1].toUpperCase();
+  }
+  
   // Common airport mappings
   const cityToIATA: Record<string, string> = {
     // Major US cities

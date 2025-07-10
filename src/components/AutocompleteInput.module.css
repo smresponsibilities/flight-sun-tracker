@@ -1,0 +1,116 @@
+.container {
+  position: relative;
+  width: 100%;
+}
+
+.selected {
+  background-color: #f0f9ff !important;
+  border-color: #0ea5e9 !important;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  border: 2px solid #d1d5db;
+  border-top: none;
+  border-radius: 0 0 0.5rem 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-height: 300px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.suggestion {
+  padding: 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.15s ease;
+}
+
+.suggestion:last-child {
+  border-bottom: none;
+}
+
+.suggestion:hover,
+.highlighted {
+  background-color: #f3f4f6;
+}
+
+.suggestion.highlighted {
+  background-color: #dbeafe;
+}
+
+.airportName {
+  font-weight: 500;
+  color: #111827;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25;
+}
+
+.airportDetails {
+  font-size: 0.75rem;
+  color: #6b7280;
+  line-height: 1.2;
+}
+
+/* Scrollbar styling for suggestions */
+.suggestions::-webkit-scrollbar {
+  width: 6px;
+}
+
+.suggestions::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.suggestions::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.suggestions::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Focus states for accessibility */
+.suggestion:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+  background-color: #dbeafe;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .suggestions {
+    max-height: 200px;
+  }
+  
+  .suggestion {
+    padding: 1rem 0.75rem;
+  }
+  
+  .airportName {
+    font-size: 0.9rem;
+  }
+  
+  .airportDetails {
+    font-size: 0.8rem;
+  }
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .airportName {
+    font-size: 0.85rem;
+  }
+  
+  .airportDetails {
+    font-size: 0.7rem;
+  }
+} 
