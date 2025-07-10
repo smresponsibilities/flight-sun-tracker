@@ -33,6 +33,7 @@ interface FlightArc {
 
 
 export default function GlobeDisplay({ flightData }: GlobeDisplayProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const globeRef = useRef<any>(null);
   const [globeReady, setGlobeReady] = useState(false);
   const [planePosition, setPlanePosition] = useState<{lat: number, lng: number, progress: number, bearing: number} | null>(null);
@@ -42,20 +43,7 @@ export default function GlobeDisplay({ flightData }: GlobeDisplayProps) {
 
   const animationRef = useRef<number>(0);
 
-  // Validate flight data
-  if (!flightData || !flightData.fromLat || !flightData.fromLng || !flightData.toLat || !flightData.toLng) {
-    return (
-      <div className={styles.globeWrapper}>
-        <div className={styles.initializingMessage}>
-          <div className={styles.initSpinner}>❌</div>
-          <div className={styles.initText}>Invalid Flight Data</div>
-          <div className={styles.initSubtext}>Unable to display flight path</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Great circle calculation to match the curved arc path
+  // Great circle calculation to match the curved arc path - moved before early return
   const calculateGreatCirclePoint = useCallback((lat1: number, lng1: number, lat2: number, lng2: number, fraction: number) => {
     const toRad = (deg: number) => deg * Math.PI / 180;
     const toDeg = (rad: number) => rad * 180 / Math.PI;
@@ -94,7 +82,85 @@ export default function GlobeDisplay({ flightData }: GlobeDisplayProps) {
     return { lat, lng, bearing: (bearing + 360) % 360 };
   }, []);
 
-  // Plane animation with animated arc
+  // Create plane HTML element - moved before early return
+  const createPlaneElement = useCallback(() => {
+    const bearing = planePosition?.bearing || 0;
+    // Convert navigation bearing to SVG rotation for proper pointing
+    // The plane SVG is designed with nose pointing up (north), so we need to adjust
+    const svgRotation = bearing;
+    
+    const planeDiv = document.createElement('div');
+    planeDiv.innerHTML = `
+      <svg width="50" height="50" viewBox="0 0 50 50" style="position: absolute; top: 0; left: 0;">
+        <defs>
+          <filter id="planeShadow">
+            <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.5)"/>
+          </filter>
+        </defs>
+        <!-- Airplane with white styling -->
+        <g transform="rotate(${svgRotation} 25 25)">
+          <!-- Fuselage - white -->
+          <ellipse cx="25" cy="25" rx="3" ry="16" fill="#ffffff" stroke="#cccccc" stroke-width="1.5"/>
+          <!-- Main wings - white -->
+          <ellipse cx="25" cy="30" rx="14" ry="3" fill="#ffffff" stroke="#cccccc" stroke-width="1.5"/>
+          <!-- Tail wings - light gray -->
+          <ellipse cx="25" cy="38" rx="6" ry="2" fill="#f5f5f5" stroke="#cccccc" stroke-width="1"/>
+          <!-- Nose cone - white -->
+          <ellipse cx="25" cy="12" rx="2" ry="3" fill="#ffffff" stroke="#cccccc" stroke-width="1"/>
+          <!-- Cockpit - light gray -->
+          <ellipse cx="25" cy="18" rx="2.2" ry="5" fill="#e5e5e5" stroke="#cccccc" stroke-width="0.8"/>
+          <!-- Wing details - very light gray -->
+          <ellipse cx="25" cy="30" rx="10" ry="1.5" fill="#f9f9f9" opacity="0.7"/>
+          <!-- Navigation lights - keep red/green for realism -->
+          <circle cx="14" cy="30" r="1.2" fill="#ef4444" opacity="0.9"/>
+          <circle cx="36" cy="30" r="1.2" fill="#22c55e" opacity="0.9"/>
+          <!-- Engine details - light gray -->
+          <ellipse cx="20" cy="30" rx="1.5" ry="2" fill="#e5e5e5" opacity="0.8"/>
+          <ellipse cx="30" cy="30" rx="1.5" ry="2" fill="#e5e5e5" opacity="0.8"/>
+        </g>
+      </svg>
+    `;
+    planeDiv.style.pointerEvents = 'none';
+    planeDiv.style.transform = 'translate(-25px, -25px)'; // Center the larger plane
+    planeDiv.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))';
+    planeDiv.style.width = '50px';
+    planeDiv.style.height = '50px';
+    return planeDiv;
+  }, [planePosition]);
+
+  // Airport points data only
+  const airportsData = useMemo(() => [
+    {
+      lat: flightData.fromLat,
+      lng: flightData.fromLng,
+      alt: 0.01,
+      color: '#f59e0b', // Orange for departure/source
+      size: 1.5,
+      label: `🛫 ${flightData.from}\n${flightData.fromName}`
+    },
+    {
+      lat: flightData.toLat,
+      lng: flightData.toLng,
+      alt: 0.01,
+      color: '#10b981', // Green for arrival/destination
+      size: 1.5,
+      label: `🛬 ${flightData.to}\n${flightData.toName}`
+    }
+  ], [flightData]);
+
+  // Plane data for HTML element
+  const planeData = useMemo(() => {
+    if (!planePosition) return [];
+    
+    return [{
+      lat: planePosition.lat,
+      lng: planePosition.lng,
+      alt: 0.02,
+      bearing: planePosition.bearing
+    }];
+  }, [planePosition]);
+
+  // Plane animation with animated arc - moved before early return
   useEffect(() => {
     if (!globeReady) return;
     
@@ -189,88 +255,7 @@ export default function GlobeDisplay({ flightData }: GlobeDisplayProps) {
     };
   }, [globeReady, flightData, calculateGreatCirclePoint]);
 
-  // Remove the old static arcsData - we'll use the animated arc instead
-
-
-  // Airport points data only
-  const airportsData = useMemo(() => [
-    {
-      lat: flightData.fromLat,
-      lng: flightData.fromLng,
-      alt: 0.01,
-      color: '#f59e0b', // Orange for departure/source
-      size: 1.5,
-      label: `🛫 ${flightData.from}\n${flightData.fromName}`
-    },
-    {
-      lat: flightData.toLat,
-      lng: flightData.toLng,
-      alt: 0.01,
-      color: '#10b981', // Green for arrival/destination
-      size: 1.5,
-      label: `🛬 ${flightData.to}\n${flightData.toName}`
-    }
-  ], [flightData]);
-
-  // Plane data for HTML element
-  const planeData = useMemo(() => {
-    if (!planePosition) return [];
-    
-    return [{
-      lat: planePosition.lat,
-      lng: planePosition.lng,
-      alt: 0.02,
-      bearing: planePosition.bearing
-    }];
-  }, [planePosition]);
-
-  // Create plane HTML element with larger fixed sizing and correct direction
-  const createPlaneElement = useCallback((d: any) => {
-    const bearing = planePosition?.bearing || 0;
-    // Convert navigation bearing to SVG rotation for proper pointing
-    // The plane SVG is designed with nose pointing up (north), so we need to adjust
-    const svgRotation = bearing;
-    
-    const planeDiv = document.createElement('div');
-    planeDiv.innerHTML = `
-      <svg width="50" height="50" viewBox="0 0 50 50" style="position: absolute; top: 0; left: 0;">
-        <defs>
-          <filter id="planeShadow">
-            <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.5)"/>
-          </filter>
-        </defs>
-        <!-- Airplane with white styling -->
-        <g transform="rotate(${svgRotation} 25 25)">
-          <!-- Fuselage - white -->
-          <ellipse cx="25" cy="25" rx="3" ry="16" fill="#ffffff" stroke="#cccccc" stroke-width="1.5"/>
-          <!-- Main wings - white -->
-          <ellipse cx="25" cy="30" rx="14" ry="3" fill="#ffffff" stroke="#cccccc" stroke-width="1.5"/>
-          <!-- Tail wings - light gray -->
-          <ellipse cx="25" cy="38" rx="6" ry="2" fill="#f5f5f5" stroke="#cccccc" stroke-width="1"/>
-          <!-- Nose cone - white -->
-          <ellipse cx="25" cy="12" rx="2" ry="3" fill="#ffffff" stroke="#cccccc" stroke-width="1"/>
-          <!-- Cockpit - light gray -->
-          <ellipse cx="25" cy="18" rx="2.2" ry="5" fill="#e5e5e5" stroke="#cccccc" stroke-width="0.8"/>
-          <!-- Wing details - very light gray -->
-          <ellipse cx="25" cy="30" rx="10" ry="1.5" fill="#f9f9f9" opacity="0.7"/>
-          <!-- Navigation lights - keep red/green for realism -->
-          <circle cx="14" cy="30" r="1.2" fill="#ef4444" opacity="0.9"/>
-          <circle cx="36" cy="30" r="1.2" fill="#22c55e" opacity="0.9"/>
-          <!-- Engine details - light gray -->
-          <ellipse cx="20" cy="30" rx="1.5" ry="2" fill="#e5e5e5" opacity="0.8"/>
-          <ellipse cx="30" cy="30" rx="1.5" ry="2" fill="#e5e5e5" opacity="0.8"/>
-        </g>
-      </svg>
-    `;
-    planeDiv.style.pointerEvents = 'none';
-    planeDiv.style.transform = 'translate(-25px, -25px)'; // Center the larger plane
-    planeDiv.style.filter = 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))';
-    planeDiv.style.width = '50px';
-    planeDiv.style.height = '50px';
-    return planeDiv;
-  }, [planePosition]);
-
-  // Initialize globe camera position
+  // Initialize globe camera position - moved before early return
   useEffect(() => {
     if (globeReady && globeRef.current) {
       // Calculate midpoint for camera positioning
@@ -285,6 +270,19 @@ export default function GlobeDisplay({ flightData }: GlobeDisplayProps) {
       }, 2000);
     }
   }, [globeReady, flightData]);
+
+  // Validate flight data
+  if (!flightData || !flightData.fromLat || !flightData.fromLng || !flightData.toLat || !flightData.toLng) {
+    return (
+      <div className={styles.globeWrapper}>
+        <div className={styles.initializingMessage}>
+          <div className={styles.initSpinner}>❌</div>
+          <div className={styles.initText}>Invalid Flight Data</div>
+          <div className={styles.initSubtext}>Unable to display flight path</div>
+        </div>
+      </div>
+    );
+  }
 
 
 
@@ -310,11 +308,17 @@ export default function GlobeDisplay({ flightData }: GlobeDisplayProps) {
         
         // Animated flight arc - grows as the plane moves
         arcsData={animatedArc ? [animatedArc] : []}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         arcStartLat={(d: any) => d.startLat}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         arcStartLng={(d: any) => d.startLng}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         arcEndLat={(d: any) => d.endLat}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         arcEndLng={(d: any) => d.endLng}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         arcColor={(d: any) => d.color}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         arcStroke={(d: any) => d.strokeWidth}
         arcAltitudeAutoScale={0.4}
         arcDashLength={1.0}
@@ -325,19 +329,28 @@ export default function GlobeDisplay({ flightData }: GlobeDisplayProps) {
         
         // Airport points
         pointsData={airportsData}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         pointLat={(d: any) => d.lat}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         pointLng={(d: any) => d.lng}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         pointAltitude={(d: any) => d.alt}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         pointColor={(d: any) => d.color}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         pointRadius={(d: any) => d.size}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         pointLabel={(d: any) => d.label}
         pointResolution={12}
         pointsMerge={false}
         
         // Animated plane
         htmlElementsData={planeData}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         htmlLat={(d: any) => d.lat}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         htmlLng={(d: any) => d.lng}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         htmlAltitude={(d: any) => d.alt}
         htmlElement={createPlaneElement}
       />
