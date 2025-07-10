@@ -31,27 +31,13 @@ export default function FlightSunTracker() {
           
 
           
-          {/* Error messages */}
+          {/* Error toast notification */}
           {state?.errors && (
-            <div className={styles.errorState} role="alert" aria-live="assertive">
-              {state.message && (
-                <p className={styles.errorMessage}>{state.message}</p>
-              )}
-              {state.errors.general && (
-                <p className={styles.errorDetail}>{state.errors.general}</p>
-              )}
-              {state.errors.sourceCity && (
-                <p className={styles.errorDetail}>Source City: {state.errors.sourceCity}</p>
-              )}
-              {state.errors.destinationCity && (
-                <p className={styles.errorDetail}>Destination: {state.errors.destinationCity}</p>
-              )}
-              {state.errors.departureTime && (
-                <p className={styles.errorDetail}>Departure Time: {state.errors.departureTime}</p>
-              )}
-              {state.errors.flightDuration && (
-                <p className={styles.errorDetail}>Duration: {state.errors.flightDuration}</p>
-              )}
+            <div className={styles.errorToast} role="alert" aria-live="assertive">
+              <div className={styles.errorToastIcon} aria-hidden="true"></div>
+              <span>
+                {state.errors.general || state.message || 'Please check your input and try again'}
+              </span>
             </div>
           )}
           

@@ -214,6 +214,32 @@
   animation: toastSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1), toastSlideDown 0.3s cubic-bezier(0.4, 0, 1, 1) 2.7s forwards;
 }
 
+/* Error Toast */
+.errorToast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #ffffff;
+  color: #1f2937;
+  border-radius: 12px;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 300px;
+  max-width: 400px;
+  border-left: 4px solid #ef4444;
+  animation: toastSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1), toastSlideDown 0.3s cubic-bezier(0.4, 0, 1, 1) 4s forwards;
+}
+
 .toastIcon {
   display: flex;
   align-items: center;
@@ -228,6 +254,24 @@
 
 .toastIcon::before {
   content: '✓';
+  color: white;
+  font-weight: bold;
+}
+
+.errorToastIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #ef4444;
+  border-radius: 50%;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.errorToastIcon::before {
+  content: '✗';
   color: white;
   font-weight: bold;
 }
@@ -252,7 +296,8 @@
 
 /* Mobile responsive toast */
 @media (max-width: 768px) {
-  .toast {
+  .toast,
+  .errorToast {
     bottom: 20px;
     left: 16px;
     right: 16px;

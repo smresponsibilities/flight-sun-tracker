@@ -91,42 +91,22 @@ export async function getFlightRecommendation(
       durationMinutes
     }
 
-    // Call our API endpoint
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/recommendation`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(apiPayload),
-    })
-
-    const result = await response.json()
-
-    if (!response.ok) {
-      return {
-        success: false,
-        message: result.details || result.error || 'Failed to get recommendation',
-        errors: {
-          general: result.details || result.error || 'API error occurred'
-        }
-      }
+    // Call the calculation function directly (more efficient than HTTP request)
+    const { calculateSunPositionForFlight } = await import('@/lib/flightCalculator')
+    
+    const flightDetails = {
+      departure: departure,
+      arrival: arrival,
+      departureTime: new Date(apiPayload.departureTime),
+      durationMinutes: apiPayload.durationMinutes
     }
 
-    if (result.success) {
-      return {
-        success: true,
-        message: 'Flight recommendation generated successfully!',
-        data: result.data
-      }
-    } else {
-      return {
-        success: false,
-        message: result.error || 'Failed to generate recommendation',
-        errors: {
-          general: result.error || 'Unknown error occurred'
-        }
-      }
+    const recommendation = calculateSunPositionForFlight(flightDetails)
+
+    return {
+      success: true,
+      message: 'Flight recommendation generated successfully!',
+      data: recommendation
     }
 
   } catch (error) {
