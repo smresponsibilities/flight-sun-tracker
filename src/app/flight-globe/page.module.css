@@ -1,0 +1,360 @@
+.globePage {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0c1445 0%, #1a2980 50%, #26d0ce 100%);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.backButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.backArrow {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.backButton:hover .backArrow {
+  transform: translateX(-3px);
+}
+
+.backText {
+  font-weight: 600;
+}
+
+.flightInfo {
+  text-align: center;
+  color: white;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.routeDisplay {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.airportCode {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 0.5rem;
+  backdrop-filter: blur(5px);
+}
+
+.routeArrow {
+  font-size: 1.2rem;
+  animation: fly 2s ease-in-out infinite;
+}
+
+@keyframes fly {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(8px); }
+}
+
+/* Globe Container */
+.globeContainer {
+  flex: 1;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Info Panel */
+.infoPanel {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  z-index: 50;
+  max-width: 300px;
+}
+
+.infoCard {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.infoTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.infoGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.infoItem:last-child {
+  border-bottom: none;
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.infoValue {
+  font-weight: 700;
+  color: #1f2937;
+  font-size: 0.9rem;
+  text-align: right;
+  line-height: 1.3;
+}
+
+.infoValue strong {
+  color: #3b82f6;
+  font-size: 1rem;
+}
+
+.infoValue small {
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Marker Legend */
+.markerLegend {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.legendTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.75rem 0;
+  text-align: center;
+}
+
+.legendItems {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.legendText {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Controls Hint */
+.controlsHint {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 50;
+  max-width: 400px;
+}
+
+.hintText {
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: 2rem;
+  font-size: 0.9rem;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.hintText:hover {
+  opacity: 1;
+}
+
+/* Loading States */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #0c1445 0%, #1a2980 50%, #26d0ce 100%);
+  color: white;
+  text-align: center;
+}
+
+.loadingSpinner {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loadingText {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.loadingSubtext {
+  font-size: 1rem;
+  opacity: 0.8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .backButton {
+    align-self: flex-start;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+  
+  .title {
+    font-size: 1.25rem;
+  }
+  
+  .routeDisplay {
+    gap: 0.75rem;
+  }
+  
+  .airportCode {
+    font-size: 1rem;
+    padding: 0.2rem 0.6rem;
+  }
+  
+  .infoPanel {
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    max-width: none;
+  }
+  
+  .infoCard {
+    padding: 1rem;
+  }
+  
+  .controlsHint {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
+  }
+  
+  .hintText {
+    font-size: 0.8rem;
+    padding: 0.75rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0.75rem;
+  }
+  
+  .backButton {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .title {
+    font-size: 1.1rem;
+  }
+  
+  .infoCard {
+    padding: 0.875rem;
+  }
+  
+  .infoTitle {
+    font-size: 1rem;
+  }
+  
+  .infoLabel,
+  .infoValue {
+    font-size: 0.85rem;
+  }
+} 

@@ -9,12 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@cesium/engine": "^17.0.0",
+    "@types/cesium": "^1.67.14",
     "@types/suncalc": "^1.9.2",
     "date-fns-tz": "^3.2.0",
     "geolib": "^3.3.4",
     "next": "15.3.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-globe.gl": "^2.34.0",
+    "resium": "^1.17.2",
     "suncalc": "^1.9.0"
   },
   "devDependencies": {
@@ -23,6 +27,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "copy-webpack-plugin": "^13.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
     "tailwindcss": "^4",

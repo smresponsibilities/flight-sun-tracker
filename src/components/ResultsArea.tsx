@@ -1,4 +1,7 @@
+'use client';
+
 import styles from './ResultsArea.module.css';
+import { useRouter } from 'next/navigation';
 
 // Type definitions for the flight recommendation data
 interface SunEvent {
@@ -46,6 +49,8 @@ interface ResultsAreaProps {
 }
 
 export default function ResultsArea({ hasResults, isLoading, data, error }: ResultsAreaProps) {
+  const router = useRouter();
+
   // Helper function to format distance
   const formatDistance = (meters: number): string => {
     const km = Math.round(meters / 1000);
@@ -178,6 +183,33 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
                 <span className={styles.statValue}>{Math.round(data.globeData.summary.averageSunVisibility)}%</span>
               </div>
             </div>
+          </div>
+
+          {/* 3D Flight View Button */}
+          <div className={styles.globeViewSection}>
+            <button 
+              className={styles.globeViewButton}
+              onClick={() => {
+                const params = new URLSearchParams({
+                  from: data.globeData.departure.iata,
+                  to: data.globeData.arrival.iata,
+                  fromName: data.globeData.departure.name,
+                  toName: data.globeData.arrival.name,
+                  fromLat: data.globeData.departure.latitude.toString(),
+                  fromLng: data.globeData.departure.longitude.toString(),
+                  toLat: data.globeData.arrival.latitude.toString(),
+                  toLng: data.globeData.arrival.longitude.toString(),
+                  duration: data.globeData.totalDuration.toString(),
+                  distance: data.globeData.totalDistance.toString()
+                });
+                router.push(`/flight-globe?${params.toString()}`);
+              }}
+              aria-label="View flight path in 3D globe"
+            >
+              <span className={styles.globeIcon} aria-hidden="true">🌍</span>
+              <span className={styles.globeText}>3D Flight View</span>
+              <span className={styles.globeArrow} aria-hidden="true">→</span>
+            </button>
           </div>
 
           {/* Sun Events */}

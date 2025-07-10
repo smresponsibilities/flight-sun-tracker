@@ -1,0 +1,351 @@
+.globeWrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #1a2980 0%, #0c1445 100%);
+}
+
+/* Initialization Loading */
+.initializingMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: white;
+  z-index: 1000;
+}
+
+.initSpinner {
+  font-size: 5rem;
+  margin-bottom: 1.5rem;
+  animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.initText {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.initSubtext {
+  font-size: 1.1rem;
+  opacity: 0.8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Animation Controls */
+.controls {
+  position: absolute;
+  top: 50%;
+  left: 2rem;
+  transform: translateY(-50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 200px;
+}
+
+.controlButton {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1f2937;
+  border: none;
+  border-radius: 3rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  min-height: 60px;
+}
+
+.controlButton:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.controlButton.active {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.controlButton.active:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.controlIcon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+/* Progress Indicator */
+.progressContainer {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 1rem;
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  border-radius: 4px;
+  transition: width 0.1s ease-out;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.progressText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+}
+
+/* Performance Hint */
+.performanceHint {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.performanceHint:hover {
+  opacity: 1;
+}
+
+.hintIcon {
+  font-size: 1rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.hintText {
+  font-weight: 500;
+}
+
+/* Globe Styling Overrides */
+.globeWrapper :global(.scene-container) {
+  cursor: grab !important;
+}
+
+.globeWrapper :global(.scene-container:active) {
+  cursor: grabbing !important;
+}
+
+/* Loading states within globe */
+.globeWrapper :global(.scene-tooltip) {
+  background: rgba(0, 0, 0, 0.8) !important;
+  color: white !important;
+  border-radius: 0.5rem !important;
+  padding: 0.5rem 1rem !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .controls {
+    left: 1rem;
+    max-width: 180px;
+  }
+  
+  .controlButton {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9rem;
+    min-height: 50px;
+  }
+  
+  .controlIcon {
+    font-size: 1.1rem;
+  }
+  
+  .performanceHint {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .controls {
+    top: auto;
+    bottom: 6rem;
+    left: 1rem;
+    right: 1rem;
+    transform: none;
+    max-width: none;
+    flex-direction: row;
+    justify-content: center;
+  }
+  
+  .controlButton {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    min-height: 45px;
+    justify-content: center;
+  }
+  
+  .progressContainer {
+    padding: 0.875rem;
+  }
+  
+  .progressText {
+    font-size: 0.8rem;
+  }
+  
+  .performanceHint {
+    display: none; /* Hide on mobile for cleaner UI */
+  }
+  
+  .initSpinner {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+  
+  .initText {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .initSubtext {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .controls {
+    bottom: 4rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  .controlButton {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.8rem;
+    min-height: 40px;
+    gap: 0.5rem;
+  }
+  
+  .controlIcon {
+    font-size: 1rem;
+  }
+  
+  .progressContainer {
+    padding: 0.75rem;
+  }
+  
+  .progressBar {
+    height: 6px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .progressText {
+    font-size: 0.75rem;
+  }
+  
+  .initSpinner {
+    font-size: 3.5rem;
+  }
+  
+  .initText {
+    font-size: 1.3rem;
+  }
+  
+  .initSubtext {
+    font-size: 0.9rem;
+  }
+}
+
+/* Performance optimizations */
+.globeWrapper * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth transitions for all interactive elements */
+.controlButton,
+.progressFill,
+.performanceHint {
+  will-change: transform, opacity;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .controlButton {
+    background: white;
+    color: black;
+    border: 2px solid black;
+  }
+  
+  .controlButton.active {
+    background: black;
+    color: white;
+    border: 2px solid white;
+  }
+  
+  .performanceHint {
+    background: black;
+    color: white;
+    border: 2px solid white;
+  }
+}
+
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .initSpinner,
+  .hintIcon,
+  .progressFill {
+    animation: none;
+  }
+  
+  .controlButton,
+  .performanceHint {
+    transition: none;
+  }
+} 
