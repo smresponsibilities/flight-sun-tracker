@@ -5,6 +5,7 @@ import FlightForm from './FlightForm';
 import ResultsArea from './ResultsArea';
 import styles from './FlightSunTracker.module.css';
 import { getFlightRecommendation, type FlightRecommendationState } from '@/app/actions';
+import { SpotlightContainer } from './ui/interactive';
 
 const initialState: FlightRecommendationState = {
   success: false,
@@ -26,7 +27,11 @@ export default function FlightSunTracker() {
       </header>
 
       <main className={styles.main}>
-        <div className={styles.formSection}>
+        <SpotlightContainer 
+          className={styles.formSection}
+          spotlightColor="rgba(59, 130, 246, 0.08)"
+          spotlightSize={350}
+        >
           <FlightForm formAction={formAction} isLoading={isPending} />
           
 
@@ -48,7 +53,7 @@ export default function FlightSunTracker() {
               <span>Flight recommendations ready</span>
             </div>
           )}
-        </div>
+        </SpotlightContainer>
         
         <div className={styles.resultsSection}>
           <ResultsArea 
