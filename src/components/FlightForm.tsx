@@ -15,6 +15,10 @@ interface FlightFormProps {
   isLoading?: boolean;
 }
 
+type TouchedFields = {
+  [K in keyof FlightFormData]?: boolean;
+};
+
 export default function FlightForm({ formAction, isLoading = false }: FlightFormProps) {
   // Get current date and time in the format required by datetime-local input
   const getCurrentDateTime = () => {
@@ -36,7 +40,7 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
 
   // Validation state
   const [fieldErrors, setFieldErrors] = useState<Partial<FlightFormData>>({});
-  const [touched, setTouched] = useState<Partial<FlightFormData>>({});
+  const [touched, setTouched] = useState<TouchedFields>({});
 
   // Validation functions
   const validateField = (field: keyof FlightFormData, value: string): string | null => {

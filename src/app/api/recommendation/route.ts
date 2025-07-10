@@ -67,7 +67,7 @@ function validateDepartureTime(timeString: string): { error?: string; date?: Dat
   return { date };
 }
 
-function validateDuration(duration: any): string | null {
+function validateDuration(duration: unknown): string | null {
   if (duration === undefined || duration === null) {
     return 'Flight duration is required';
   }
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     
     try {
       body = await request.json();
-    } catch (parseError) {
+    } catch {
       return NextResponse.json(
         {
           success: false,

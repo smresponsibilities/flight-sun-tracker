@@ -1,12 +1,12 @@
 'use server'
 
-import { redirect } from 'next/navigation'
+import type { FlightRecommendation } from '@/lib/flightCalculator'
 
 // State interfaces for useActionState
 export interface FlightRecommendationState {
   success: boolean
   message?: string
-  data?: any
+  data?: FlightRecommendation
   errors?: {
     sourceCity?: string
     destinationCity?: string

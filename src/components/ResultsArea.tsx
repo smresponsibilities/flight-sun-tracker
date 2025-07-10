@@ -26,7 +26,7 @@ interface FlightRecommendationData {
   globeData: {
     departure: Airport;
     arrival: Airport;
-    flightPath: any[];
+    flightPath: unknown[];
     totalDistance: number;
     totalDuration: number;
     summary: {
@@ -71,7 +71,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
   };
 
   // Helper function to get recommendation icon and colors
-  const getRecommendationStyle = (recommendation: string, confidence: number) => {
+  const getRecommendationStyle = (recommendation: string) => {
     switch (recommendation) {
       case 'left':
         return {
@@ -130,14 +130,14 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
           <div 
             className={styles.recommendationCard}
             style={{
-              background: getRecommendationStyle(data.recommendation, data.confidence).bgColor,
-              borderColor: getRecommendationStyle(data.recommendation, data.confidence).borderColor,
-              color: getRecommendationStyle(data.recommendation, data.confidence).textColor
+              background: getRecommendationStyle(data.recommendation).bgColor,
+              borderColor: getRecommendationStyle(data.recommendation).borderColor,
+              color: getRecommendationStyle(data.recommendation).textColor
             }}
           >
             <div className={styles.recommendationHeader}>
               <span className={styles.recommendationIcon} aria-hidden="true">
-                {getRecommendationStyle(data.recommendation, data.confidence).icon}
+                {getRecommendationStyle(data.recommendation).icon}
               </span>
               <h3 className={styles.recommendationTitle}>
                 Recommended Side: {data.recommendation.toUpperCase()}
@@ -235,7 +235,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
           <div className={styles.emptyIcon} aria-hidden="true">☀️</div>
           <h3 className={styles.emptyHeading}>Ready to find your perfect seat</h3>
           <p className={styles.emptyText}>
-            Fill out the flight information above and click "Find Best Seat" to get personalized recommendations based on sun exposure patterns.
+            Fill out the flight information above and click &quot;Find Best Seat&quot; to get personalized recommendations based on sun exposure patterns.
           </p>
           <div className={styles.features}>
             <ul className={styles.featureList} role="list">
