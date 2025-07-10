@@ -7,22 +7,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 0.75rem;
 }
 
 .heading {
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #000000;
   margin: 0 auto 0.4rem auto;
   text-align: center;
   width: 100%;
   display: block;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 @media (min-width: 768px) {
   .heading {
     text-align: center;
-    font-size: 1rem;
+    font-size: 1.4rem;
     margin: 0 auto 0.4rem auto;
   }
 }
@@ -60,35 +63,41 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 0.5rem 0.25rem;
-  gap: 0.5rem;
+  padding: 1.5rem 0.75rem;
+  gap: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  flex: 1;
+  justify-content: center;
 }
 
 .emptyIcon {
-  font-size: 2.5rem;
-  margin-bottom: 0.1rem;
+  font-size: 3.5rem;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .emptyHeading {
-  font-size: 1rem;
+  font-size: 1.3rem;
   font-weight: 600;
   color: #000000;
-  margin: 0;
+  margin: 0 0 0.75rem 0;
   text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .emptyText {
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: #374151;
-  line-height: 1.4;
-  margin: 0 auto 0.5rem auto;
-  max-width: 500px;
+  line-height: 1.5;
+  margin: 0 auto 1.5rem auto;
+  max-width: 750px;
   text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .features {
   width: 100%;
-  max-width: 600px;
+  max-width: 900px;
   display: flex;
   justify-content: center;
 }
@@ -99,85 +108,385 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1.25rem;
 }
 
 .featureItem {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
+  gap: 0.75rem;
+  font-size: 1rem;
   color: #1f2937;
-  padding: 0.375rem;
+  padding: 1rem;
   background-color: white;
-  border-radius: 0.375rem;
+  border-radius: 0.5625rem;
   border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
 }
 
 .featureIcon {
-  font-size: 1rem;
+  font-size: 1.25rem;
   flex-shrink: 0;
 }
 
-/* Tablet and up */
-@media (min-width: 768px) {
-  .resultsContainer {
-    padding: 2rem;
-    margin-top: 3rem;
-  }
-  
-  .heading {
-    font-size: 1.5rem;
-    text-align: center;
-  }
-  
-  .emptyState {
-    padding: 3rem 2rem;
-  }
-  
-  .emptyIcon {
-    font-size: 5rem;
-  }
-  
-  .emptyHeading {
-    font-size: 1.25rem;
-  }
-  
-  .emptyText {
-    font-size: 1rem;
-  }
-  
-  .featureList {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    gap: 0.8rem;
-  }
-  
-  .featureItem {
-    flex: 1;
-    min-width: 0;
-    max-width: none;
-    justify-content: center;
-    text-align: center;
-    flex-direction: column;
-    gap: 0.3rem;
-    padding: 0.6rem;
-  }
-  
-  .featureIcon {
-    font-size: 1.5rem;
-  }
+.featureItem:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Desktop and up */
-@media (min-width: 1024px) {
-  .resultsContainer {
-    padding: 2.5rem;
+/* Loading and Error States */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.loadingSpinner {
+  font-size: 24px;
+  animation: bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.errorState {
+  text-align: center;
+  padding: 40px 20px;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 12px;
+  color: #c53030;
+}
+
+.errorIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.errorState h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.errorState p {
+  margin: 0;
+  color: #718096;
+}
+
+/* Main Recommendation Card */
+.recommendationCard {
+  padding: 24px;
+  border: 2px solid;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.recommendationHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.recommendationIcon {
+  font-size: 32px;
+}
+
+.recommendationTitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  flex: 1;
+  min-width: 200px;
+}
+
+.confidenceScore {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.confidenceLabel {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.confidenceValue {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.recommendationDescription {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Flight Details */
+.flightDetails {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #2d3748;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flightRoute {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.routePoint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 120px;
+}
+
+.airportCode {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  letter-spacing: 2px;
+}
+
+.airportName {
+  font-size: 14px;
+  color: #718096;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.routeArrow {
+  font-size: 24px;
+  color: #4299e1;
+  margin: 0 8px;
+}
+
+.flightStats {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  flex: 1;
+  min-width: 0;
+}
+
+.statLabel {
+  font-size: 14px;
+  color: #718096;
+  font-weight: 500;
+}
+
+.statValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+/* Sun Events */
+.sunEvents {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.eventsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.eventItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #fed7aa;
+}
+
+.eventIcon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.eventDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.eventType {
+  font-size: 16px;
+  font-weight: 600;
+  color: #c05621;
+}
+
+.eventTime {
+  font-size: 14px;
+  color: #7c2d12;
+  font-weight: 500;
+}
+
+.eventSide {
+  font-size: 13px;
+  color: #92400e;
+  font-style: italic;
+}
+
+/* Summary Statistics */
+.summaryStats {
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.statsGrid {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #bae6fd;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.summaryIcon {
+  font-size: 32px;
+}
+
+.summaryNumber {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0369a1;
+  line-height: 1;
+}
+
+.summaryLabel {
+  font-size: 14px;
+  color: #075985;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .recommendationHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
   
-  .features {
-    max-width: 700px;
-    justify-content: center;
+  .recommendationTitle {
+    font-size: 20px;
+    min-width: auto;
+  }
+  
+  .confidenceScore {
+    align-self: flex-end;
+  }
+  
+  .flightRoute {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .routeArrow {
+    transform: rotate(90deg);
+    margin: 8px 0;
+  }
+  
+  .flightStats {
+    gap: 8px;
+  }
+  
+  .statItem {
+    padding: 8px;
+  }
+  
+  .statLabel {
+    font-size: 12px;
+  }
+  
+  .statValue {
+    font-size: 14px;
+  }
+  
+  .statsGrid {
+    gap: 8px;
+  }
+  
+  .summaryCard {
+    padding: 12px 8px;
+  }
+  
+  .summaryIcon {
+    font-size: 24px;
+  }
+  
+  .summaryNumber {
+    font-size: 20px;
+  }
+  
+  .summaryLabel {
+    font-size: 12px;
   }
 } 

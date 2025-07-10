@@ -83,6 +83,55 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
 
+/* Loading spinner for submit button */
+.loadingSpinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Disabled button state */
+.submitButton:disabled {
+  background: linear-gradient(135deg, #cbd5e0 0%, #e2e8f0 100%);
+  color: #718096;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+  .submitButton:disabled:hover {
+    background: linear-gradient(135deg, #cbd5e0 0%, #e2e8f0 100%);
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Validation error styles */
+  .inputError {
+    border-color: #f56565 !important;
+    background-color: #fed7d7;
+    box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
+  }
+
+  .inputError:focus {
+    border-color: #f56565 !important;
+    box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.3);
+  }
+
+  .errorText {
+    display: block;
+    color: #e53e3e;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+  }
+
 /* Tablet and up */
 @media (min-width: 768px) {
   .form {
