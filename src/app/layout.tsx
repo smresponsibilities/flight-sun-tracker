@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Flight Sun Tracker",
-  description: "Made with love by Shivam Mahajan",
+  title: "Flight Sun Tracker | Aviation Cockpit Solar HUD",
+  description: "Second-by-second solar azimuth and elevation seat shade calculator along Great-Circle flight paths.",
 };
 
 export default function RootLayout({
@@ -23,8 +23,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} background-spotlight`}>
+    <html lang="en" className="dark">
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#09090b] text-[#f4f4f5]`}>
         {children}
       </body>
     </html>

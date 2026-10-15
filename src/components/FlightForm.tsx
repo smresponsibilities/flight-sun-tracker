@@ -305,7 +305,7 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
         )}
         <span id="flightDuration-desc" className={styles.description}>
           {formData.flightDuration && parseDurationToMinutes(formData.flightDuration) 
-            ? `✅ Parsed as: ${Math.floor(parseDurationToMinutes(formData.flightDuration)! / 60)}h ${parseDurationToMinutes(formData.flightDuration)! % 60}m`
+            ? `[OK] Parsed as: ${Math.floor(parseDurationToMinutes(formData.flightDuration)! / 60)}h ${parseDurationToMinutes(formData.flightDuration)! % 60}m`
             : 'Enter flight duration (e.g. "2h 30m", "2:30", or "150 minutes")'
           }
         </span>
@@ -325,7 +325,7 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
               onChange={() => setFormData(prev => ({ ...prev, preference: 'sun' }))}
               className={styles.hiddenRadio}
             />
-            <span className={styles.preferenceIcon}>☀️</span>
+            <span className={styles.preferenceIcon}>[Sun]</span>
             <span>Scenic Sun & Views</span>
           </label>
           <label className={`${styles.preferenceOption} ${formData.preference === 'shade' ? styles.preferenceActive : ''}`}>
@@ -337,7 +337,7 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
               onChange={() => setFormData(prev => ({ ...prev, preference: 'shade' }))}
               className={styles.hiddenRadio}
             />
-            <span className={styles.preferenceIcon}>🕶️</span>
+            <span className={styles.preferenceIcon}>[Shade]</span>
             <span>Max Shade & Sleep</span>
           </label>
         </div>
@@ -353,7 +353,7 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
       >
         {isLoading ? (
           <>
-            <span className={styles.loadingSpinner} aria-hidden="true">⏳</span>
+            <span className={styles.loadingSpinner} aria-hidden="true">[SYNC]</span>
             Analyzing flight path...
           </>
         ) : (

@@ -10,7 +10,7 @@ const GlobeDisplay = dynamic(() => import('@/components/GlobeDisplay'), {
   ssr: false,
   loading: () => (
     <div className={styles.loadingContainer}>
-      <div className={styles.loadingSpinner}>🌍</div>
+      <div className={styles.loadingSpinner}>[SYNC]</div>
       <div className={styles.loadingText}>Loading 3D Globe...</div>
       <div className={styles.loadingSubtext}>Preparing your flight visualization</div>
     </div>
@@ -71,7 +71,7 @@ function FlightGlobeContent() {
   if (isLoading || !flightData) {
     return (
       <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}>🌍</div>
+        <div className={styles.loadingSpinner}>[SYNC]</div>
         <div className={styles.loadingText}>Loading flight data...</div>
       </div>
     );
@@ -86,7 +86,7 @@ function FlightGlobeContent() {
           onClick={handleGoBack}
           aria-label="Go back to flight results"
         >
-          <span className={styles.backArrow}>←</span>
+          <span className={styles.backArrow}>&larr;</span>
           <span className={styles.backText}>Back</span>
         </button>
         
@@ -94,7 +94,7 @@ function FlightGlobeContent() {
           <h1 className={styles.title}>3D Flight Path</h1>
           <div className={styles.routeDisplay}>
             <span className={styles.airportCode}>{flightData.from}</span>
-            <span className={styles.routeArrow}>✈️</span>
+            <span className={styles.routeArrow}>&rarr;</span>
             <span className={styles.airportCode}>{flightData.to}</span>
           </div>
         </div>
@@ -158,7 +158,7 @@ function FlightGlobeContent() {
       {/* Controls hint */}
       <div className={styles.controlsHint}>
         <div className={styles.hintText}>
-          🖱️ Click and drag to rotate • 🔍 Scroll to zoom • ✈️ Watch the flight path animation
+          [DRAG] Rotate &bull; [SCROLL] Zoom &bull; [VIEW] Great Circle Navigation
         </div>
       </div>
     </div>
@@ -169,11 +169,11 @@ export default function FlightGlobePage() {
   return (
     <Suspense fallback={
       <div className={styles.loadingContainer}>
-        <div className={styles.loadingSpinner}>🌍</div>
+        <div className={styles.loadingSpinner}>[SYNC]</div>
         <div className={styles.loadingText}>Loading...</div>
       </div>
     }>
       <FlightGlobeContent />
     </Suspense>
   );
-} 
+}

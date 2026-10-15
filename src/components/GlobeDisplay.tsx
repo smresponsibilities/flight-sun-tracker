@@ -136,7 +136,7 @@ export default function GlobeDisplay({ flightData }: GlobeDisplayProps) {
       alt: 0.01,
       color: '#f59e0b', // Orange for departure/source
       size: 1.5,
-      label: `🛫 ${flightData.from}\n${flightData.fromName}`
+      label: `[DEP] ${flightData.from}\n${flightData.fromName}`
     },
     {
       lat: flightData.toLat,
@@ -144,7 +144,7 @@ export default function GlobeDisplay({ flightData }: GlobeDisplayProps) {
       alt: 0.01,
       color: '#10b981', // Green for arrival/destination
       size: 1.5,
-      label: `🛬 ${flightData.to}\n${flightData.toName}`
+      label: `[ARR] ${flightData.to}\n${flightData.toName}`
     }
   ], [flightData]);
 
@@ -276,7 +276,7 @@ export default function GlobeDisplay({ flightData }: GlobeDisplayProps) {
     return (
       <div className={styles.globeWrapper}>
         <div className={styles.initializingMessage}>
-          <div className={styles.initSpinner}>❌</div>
+          <div className={styles.initSpinner}>[!]</div>
           <div className={styles.initText}>Invalid Flight Data</div>
           <div className={styles.initSubtext}>Unable to display flight path</div>
         </div>

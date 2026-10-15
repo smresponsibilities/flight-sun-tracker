@@ -1,127 +1,98 @@
 @import "tailwindcss";
 
 :root {
-  --background: linear-gradient(135deg, #e0eafc 0%, #b6c6e6 50%, #cfd9df 100%);
-  --foreground: #171717;
-}
+  --background: #09090b;
+  --background-secondary: #030303;
+  --foreground: #f4f4f5;
+  --foreground-muted: #a1a1aa;
+  
+  /* Cockpit borders */
+  --cockpit-border: rgba(255, 255, 255, 0.08);
+  --cockpit-border-subtle: rgba(255, 255, 255, 0.04);
+  --cockpit-border-highlight: rgba(255, 255, 255, 0.16);
 
-.background-spotlight::before {
-  content: "";
-  position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(circle at 60% 20%, rgba(255,255,255,0.33) 0%, transparent 70%);
-  filter: blur(0.5px);
+  /* Functional Solar & Aviation Accents */
+  --solar-amber: #f59e0b;
+  --solar-amber-bright: #fbbf24;
+  --solar-amber-glow: rgba(245, 158, 11, 0.25);
+  
+  --cabin-cyan: #38bdf8;
+  --cabin-slate: #64748b;
+  --cabin-shade-glow: rgba(56, 189, 248, 0.2);
+
+  --alert-emerald: #10b981;
+  --alert-emerald-bright: #34d399;
+  --alert-emerald-glow: rgba(16, 185, 129, 0.25);
+
+  --night-indigo: #1e1b4b;
+  --night-indigo-dark: #0f172a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  
-  /* Custom animations for interactive components */
-  --animate-text-shimmer: text-shimmer 2.5s ease-out infinite alternate;
-  --animate-pulse-slow: pulse 6s infinite cubic-bezier(0.4, 0, 0.6, 1);
-  --animate-float: float 3s ease-in-out infinite;
-  --animate-glow: glow 2s ease-in-out infinite alternate;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* Custom keyframes for animations */
-@keyframes text-shimmer {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes glow {
-  0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.2); }
-  100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
-}
-
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Smooth scrolling for the entire app */
-html {
-  scroll-behavior: smooth;
+/* Tabular monospace numerals for aviation instrumentation */
+.font-mono-numbers {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1, "zero" 1;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Enhanced focus styles for accessibility */
-*:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+/* Glass-cockpit dark panel surface */
+.cockpit-panel {
+  background-color: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--cockpit-border);
 }
 
-/* Hide scrollbar for webkit browsers but keep functionality */
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
+.cockpit-card {
+  background-color: #0c0c10;
+  border: 1px solid var(--cockpit-border);
 }
 
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* Cockpit HUD Scanline / Graticule overlay */
+.cockpit-grid-bg {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
-/* Custom utility classes for the interactive components */
-.perspective-1000 {
-  perspective: 1000px;
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.transform-style-3d {
-  transform-style: preserve-3d;
+::-webkit-scrollbar-track {
+  background: #09090b;
 }
 
-.backface-hidden {
-  backface-visibility: hidden;
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
 }
 
-/* Gradient text effect */
-.gradient-text {
-  background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4);
-  background-size: 300% 300%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: gradient-shift 3s ease infinite;
-}
-
-/* Backdrop blur for glass-morphism effects */
-.glass-effect {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-/* Custom glow effect */
-.glow-blue {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-}
-
-.glow-purple {
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
-}
-
-.glow-green {
-  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.22);
 }

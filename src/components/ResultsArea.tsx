@@ -88,7 +88,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
     switch (recommendation) {
       case 'left':
         return {
-          icon: '⬅️',
+          icon: '[PORT]',
           bgColor: '#e3f2fd',
           borderColor: '#2196f3',
           textColor: '#1565c0',
@@ -96,7 +96,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
         };
       case 'right':
         return {
-          icon: '➡️',
+          icon: '[STARBOARD]',
           bgColor: '#f3e5f5',
           borderColor: '#9c27b0',
           textColor: '#7b1fa2',
@@ -104,7 +104,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
         };
       default:
         return {
-          icon: '↔️',
+          icon: '[BALANCED]',
           bgColor: '#f1f8e9',
           borderColor: '#4caf50',
           textColor: '#2e7d32',
@@ -152,7 +152,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
                   animate={{ rotate: 360 }}
                   transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                 >
-                  ✈️
+                  &rarr;
                 </motion.div>
                 <p className="text-lg font-medium">Analyzing sun position for your flight...</p>
               </InteractiveCard>
@@ -175,7 +175,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
                  rotationIntensity={4}
                  role="alert"
                >
-                <div className={cn(styles.errorIcon, "text-2xl mb-3")} aria-hidden="true">❌</div>
+                <div className={cn(styles.errorIcon, "text-2xl mb-3")} aria-hidden="true">[X]</div>
                 <h3 className="text-xl font-bold mb-2">Unable to Generate Recommendation</h3>
                 <p className="text-gray-600 dark:text-gray-300">{error}</p>
               </InteractiveCard>
@@ -284,7 +284,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
                       animate={{ x: [0, 5, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      ✈️
+                      &rarr;
                     </motion.div>
                     <motion.div 
                       className={styles.routePoint}
@@ -297,9 +297,9 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
                   </div>
                   <div className={cn(styles.flightStats, "grid grid-cols-1 md:grid-cols-3 gap-4 mt-6")}>
                     {[
-                      { label: "Distance", value: formatDistance(data.globeData.totalDistance), icon: "🌍" },
-                      { label: "Duration", value: formatDuration(data.globeData.totalDuration), icon: "⏰" },
-                      { label: "Sun Visibility", value: `${Math.round(data.globeData.summary.averageSunVisibility)}%`, icon: "☀️" }
+                      { label: "Distance", value: formatDistance(data.globeData.totalDistance), icon: "[GLOBE]" },
+                      { label: "Duration", value: formatDuration(data.globeData.totalDuration), icon: "[TIME]" },
+                      { label: "Sun Visibility", value: `${Math.round(data.globeData.summary.averageSunVisibility)}%`, icon: "[SUN]" }
                     ].map((stat, index) => (
                                              <motion.div 
                          key={stat.label}
@@ -360,7 +360,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
                       animate={{ rotate: 360 }}
                       transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                     >
-                      🌍
+                      [GLOBE]
                     </motion.span>
                     <span className={styles.globeText}>3D Flight View</span>
                     <motion.span 
@@ -406,7 +406,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
                            whileHover={{ scale: 1.02, x: 5 }}
                          >
                           <div className={cn(styles.eventIcon, "text-2xl")} aria-hidden="true">
-                            {event.type === 'sunrise' ? '🌅' : '🌇'}
+                            {event.type === 'sunrise' ? '[SUNRISE]' : '[SUNSET]'}
                           </div>
                           <div className={styles.eventDetails}>
                             <span className={cn(styles.eventType, "font-semibold")}>{event.type.charAt(0).toUpperCase() + event.type.slice(1)}</span>
@@ -443,9 +443,9 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
                   </h4>
                   <div className={cn(styles.statsGrid, "grid grid-cols-1 md:grid-cols-3 gap-6")}>
                     {[
-                      { icon: "🌅", number: data.globeData.summary.totalSunriseEvents, label: "Sunrise Events", color: "from-yellow-500 to-orange-500" },
-                      { icon: "🌇", number: data.globeData.summary.totalSunsetEvents, label: "Sunset Events", color: "from-orange-500 to-red-500" },
-                      { icon: "☀️", number: Math.round(data.globeData.summary.averageSunVisibility), label: "Sun Visibility %", color: "from-blue-500 to-cyan-500" }
+                      { icon: "[SUNRISE]", number: data.globeData.summary.totalSunriseEvents, label: "Sunrise Events", color: "from-yellow-500 to-orange-500" },
+                      { icon: "[SUNSET]", number: data.globeData.summary.totalSunsetEvents, label: "Sunset Events", color: "from-orange-500 to-red-500" },
+                      { icon: "[SUN]", number: Math.round(data.globeData.summary.averageSunVisibility), label: "Sun Visibility %", color: "from-blue-500 to-cyan-500" }
                     ].map((stat, index) => (
                                              <motion.div
                          key={stat.label}
@@ -503,7 +503,7 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
                   animate={{ rotate: [0, 5, 0], scale: [1, 1.05, 1] }}
                   transition={{ duration: 3, repeat: Infinity }}
                 >
-                  ☀️
+                  [SUN]
                 </motion.div>
                 <h3 className={styles.emptyHeading}>
                   <GradientText 
@@ -524,9 +524,9 @@ export default function ResultsArea({ hasResults, isLoading, data, error }: Resu
                 <div className={styles.features}>
                   <ul className={cn(styles.featureList, "space-y-4")} role="list">
                     {[
-                      { icon: "🌅", text: "Optimal sunlight exposure timing" },
-                      { icon: "🪟", text: "Window vs aisle recommendations" },
-                      { icon: "🧭", text: "Direction-based seat positioning" }
+                      { icon: "[SUNRISE]", text: "Optimal sunlight exposure timing" },
+                      { icon: "[WINDOW]", text: "Window vs aisle recommendations" },
+                      { icon: "[COMPASS]", text: "Direction-based seat positioning" }
                     ].map((feature, index) => (
                       <motion.li 
                         key={feature.text}
