@@ -26,47 +26,47 @@ export default function CabinCrossSection({
   const isSunOnStarboard = !isNight && relativeAzimuth > 0 && relativeAzimuth < 180;
   const isSunOnPort = !isNight && relativeAzimuth > 180 && relativeAzimuth < 360;
 
-  // Window Shades State (Defaults: Auto-lower on glare side)
+  // Electrochromic Window Shades State (Smart auto-dimming on glare side)
   const [portShadeDown, setPortShadeDown] = useState(false);
   const [starboardShadeDown, setStarboardShadeDown] = useState(false);
-  const [autoShade, setAutoShade] = useState(true);
+  const [autoDim, setAutoDim] = useState(true);
 
-  // Sync shades with glare when auto-shade is enabled
+  // Auto-dim window on glare side
   useEffect(() => {
-    if (autoShade) {
+    if (autoDim) {
       setPortShadeDown(isSunOnPort);
       setStarboardShadeDown(isSunOnStarboard);
     }
-  }, [autoShade, isSunOnPort, isSunOnStarboard]);
+  }, [autoDim, isSunOnPort, isSunOnStarboard]);
 
-  // Geometric volumetric ray projection inside SVG viewBox="0 0 540 340"
-  // Port Window: cx=48, cy=145
-  // Starboard Window: cx=492, cy=145
-  // Cabin Floor: y=275
+  // Geometric volumetric ray projection inside SVG viewBox="0 0 600 380"
+  // Port Window: cx=48, cy=150
+  // Starboard Window: cx=552, cy=150
+  // Cabin Floor: y=300
   const clampedElev = Math.max(8, Math.min(75, Math.abs(sunElevation)));
   const rayAngleRad = (clampedElev * Math.PI) / 180;
 
-  const portWindowX = 54;
-  const starboardWindowX = 486;
+  const portWindowX = 64;
+  const starboardWindowX = 536;
 
   // Floor target calculation
-  const beamDepth = 130 / Math.tan(rayAngleRad);
-  const portBeamTargetX = Math.min(340, portWindowX + Math.max(80, beamDepth));
-  const starboardBeamTargetX = Math.max(200, starboardWindowX - Math.max(80, beamDepth));
+  const beamDepth = 150 / Math.tan(rayAngleRad);
+  const portBeamTargetX = Math.min(380, portWindowX + Math.max(90, beamDepth));
+  const starboardBeamTargetX = Math.max(220, starboardWindowX - Math.max(90, beamDepth));
 
   const isPortRecommended = recommendedSide === 'left' || recommendedSide === 'either';
   const isStarboardRecommended = recommendedSide === 'right' || recommendedSide === 'either';
 
   return (
-    <div className="cockpit-card rounded-xl p-5 border border-[var(--cockpit-border)] relative overflow-hidden flex flex-col justify-between">
+    <div className="cockpit-card rounded-xl p-5 border border-[var(--cockpit-border)] relative overflow-hidden flex flex-col justify-between shadow-2xl">
       {/* HUD Header */}
-      <div className="flex flex-wrap items-center justify-between pb-3 border-b border-[var(--cockpit-border)] mb-4 gap-2">
+      <div className="flex flex-wrap items-center justify-between pb-3 border-b border-[var(--cockpit-border)] mb-3 gap-2">
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-[var(--cabin-cyan)] animate-pulse" />
           <span className="text-xs uppercase tracking-wider font-mono-numbers text-white font-bold">
             CABIN HUD [B787 / A350 GLASS CUTAWAY]
           </span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-[var(--foreground-muted)] font-mono-numbers">
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-[var(--foreground-muted)] font-mono-numbers font-medium">
             {activePreference === 'shade' ? 'MAX SHADE' : 'SCENIC SUN'}
           </span>
         </div>
@@ -95,393 +95,450 @@ export default function CabinCrossSection({
       </div>
 
       {/* Luxury Cutaway SVG Graphic */}
-      <div className="relative w-full aspect-[540/340] flex items-center justify-center">
+      <div className="relative w-full aspect-[600/380] flex items-center justify-center bg-zinc-950/80 rounded-lg p-2 border border-white/5">
         <svg
-          viewBox="0 0 540 340"
+          viewBox="0 0 600 380"
           className="w-full h-full select-none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            {/* Metallic Titanium Outer Rim Gradient */}
-            <linearGradient id="titaniumGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#475569" />
-              <stop offset="30%" stopColor="#1e293b" />
-              <stop offset="70%" stopColor="#0f172a" />
-              <stop offset="100%" stopColor="#334155" />
+            {/* Outer Airframe Titanium Bevel */}
+            <linearGradient id="fuselageOuterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#64748b" />
+              <stop offset="25%" stopColor="#334155" />
+              <stop offset="75%" stopColor="#1e293b" />
+              <stop offset="100%" stopColor="#475569" />
             </linearGradient>
 
-            {/* Carbon Fiber Fuselage Wall Gradient */}
-            <linearGradient id="carbonWall" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#0c101d" />
-              <stop offset="100%" stopColor="#060911" />
+            {/* Inner Cabin Wall Gradient */}
+            <linearGradient id="cabinInnerWallGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor={isNight ? '#111827' : '#1e293b'} />
+              <stop offset="100%" stopColor={isNight ? '#0a0f1d' : '#0f172a'} />
             </linearGradient>
 
             {/* Volumetric Sunbeam Port */}
-            <linearGradient id="volumetricBeamPort" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#fef08a" stopOpacity="0.65" />
-              <stop offset="25%" stopColor="#fbbf24" stopOpacity="0.4" />
-              <stop offset="65%" stopColor="#f59e0b" stopOpacity="0.15" />
+            <linearGradient id="volBeamPort" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#fef08a" stopOpacity="0.8" />
+              <stop offset="20%" stopColor="#fbbf24" stopOpacity="0.5" />
+              <stop offset="60%" stopColor="#f59e0b" stopOpacity="0.2" />
               <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.0" />
             </linearGradient>
 
             {/* Volumetric Sunbeam Starboard */}
-            <linearGradient id="volumetricBeamStarboard" x1="100%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#fef08a" stopOpacity="0.65" />
-              <stop offset="25%" stopColor="#fbbf24" stopOpacity="0.4" />
-              <stop offset="65%" stopColor="#f59e0b" stopOpacity="0.15" />
+            <linearGradient id="volBeamStarboard" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#fef08a" stopOpacity="0.8" />
+              <stop offset="20%" stopColor="#fbbf24" stopOpacity="0.5" />
+              <stop offset="60%" stopColor="#f59e0b" stopOpacity="0.2" />
               <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.0" />
             </linearGradient>
 
-            {/* Emerald Recommendation Glow */}
-            <filter id="emeraldBeaconGlow" x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#10b981" floodOpacity="0.75" />
+            {/* Emerald Recommendation Halo */}
+            <filter id="emeraldSuiteGlow" x="-25%" y="-25%" width="150%" height="150%">
+              <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#10b981" floodOpacity="0.85" />
             </filter>
 
-            {/* Solar Flare Glow */}
-            <filter id="solarFlare" x="-40%" y="-40%" width="180%" height="180%">
-              <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#fbbf24" floodOpacity="0.8" />
+            {/* Solar Window Flare */}
+            <filter id="windowSunFlare" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="0" stdDeviation="10" floodColor="#fbbf24" floodOpacity="0.9" />
             </filter>
           </defs>
 
-          {/* 1. Titanium Metallic Outer Airframe Rim */}
+          {/* 1. Titanium Outer Airframe Hull */}
           <ellipse
-            cx="270"
-            cy="170"
-            rx="255"
-            ry="155"
-            fill="url(#titaniumGrad)"
-            stroke="rgba(255, 255, 255, 0.2)"
+            cx="300"
+            cy="190"
+            rx="285"
+            ry="175"
+            fill="url(#fuselageOuterGrad)"
+            stroke="rgba(255, 255, 255, 0.3)"
             strokeWidth="3.5"
+          />
+
+          {/* Structural Stringers / Ribs */}
+          <ellipse
+            cx="300"
+            cy="190"
+            rx="275"
+            ry="165"
+            fill="none"
+            stroke="rgba(255, 255, 255, 0.1)"
+            strokeWidth="1.5"
+            strokeDasharray="6 4"
           />
 
           {/* 2. Inner Carbon Composite Cabin Wall */}
           <ellipse
-            cx="270"
-            cy="170"
-            rx="240"
-            ry="142"
-            fill={isNight ? '#080c18' : 'url(#carbonWall)'}
-            stroke="rgba(255, 255, 255, 0.08)"
+            cx="300"
+            cy="190"
+            rx="265"
+            ry="155"
+            fill="url(#cabinInnerWallGrad)"
+            stroke="rgba(255, 255, 255, 0.15)"
             strokeWidth="2"
           />
 
-          {/* 3. Arched Ceiling & Overhead Bins (B787 / A350 Signature Architecture) */}
+          {/* 3. Arched Ceiling & Overhead Bins (B787 / A350 Architecture) */}
           <path
-            d="M 90 85 Q 270 52 450 85 L 430 110 Q 270 88 110 110 Z"
-            fill="#111827"
-            stroke="rgba(255, 255, 255, 0.1)"
-            strokeWidth="1.2"
+            d="M 100 95 Q 300 58 500 95 L 480 125 Q 300 98 120 125 Z"
+            fill="#1e293b"
+            stroke="rgba(255, 255, 255, 0.2)"
+            strokeWidth="1.5"
           />
-          {/* Bin Partition Latches */}
-          <path d="M 130 90 L 210 96 L 205 118 L 125 112 Z" fill="#182030" stroke="rgba(255, 255, 255, 0.08)" />
-          <path d="M 410 90 L 330 96 L 335 118 L 415 112 Z" fill="#182030" stroke="rgba(255, 255, 255, 0.08)" />
 
-          {/* Dynamic Ambient Ceiling Mood LED Strip */}
+          {/* Overhead Bins Division Panels */}
+          <path d="M 140 100 L 230 108 L 225 132 L 135 124 Z" fill="#243048" stroke="rgba(255,255,255,0.12)" />
+          <path d="M 460 100 L 370 108 L 375 132 L 465 124 Z" fill="#243048" stroke="rgba(255,255,255,0.12)" />
+
+          {/* Center Ceiling Ambient LED Cove Lighting Strip */}
           <line
-            x1="220"
-            y1="70"
-            x2="320"
-            y2="70"
-            stroke={isNight ? '#38bdf8' : '#fbbf24'}
-            strokeWidth="3"
+            x1="240"
+            y1="82"
+            x2="360"
+            y2="82"
+            stroke={isNight ? '#818cf8' : '#fbbf24'}
+            strokeWidth="4"
             strokeLinecap="round"
-            opacity={isNight ? 0.9 : 0.75}
+            opacity="0.95"
+          />
+          {/* Secondary Ceiling Wash Glow */}
+          <ellipse
+            cx="300"
+            cy="84"
+            rx="80"
+            ry="12"
+            fill={isNight ? 'rgba(129, 140, 248, 0.2)' : 'rgba(251, 191, 36, 0.25)'}
           />
 
-          {/* 4. Cabin Floor Structure */}
-          <line x1="60" y1="270" x2="480" y2="270" stroke="rgba(255, 255, 255, 0.25)" strokeWidth="3" />
-          <line x1="85" y1="277" x2="455" y2="277" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="1" />
+          {/* 4. Heavy Aircraft Floor Structure */}
+          <line x1="70" y1="300" x2="530" y2="300" stroke="rgba(255, 255, 255, 0.4)" strokeWidth="3.5" />
+          <line x1="90" y1="308" x2="510" y2="308" stroke="rgba(255, 255, 255, 0.15)" strokeWidth="1.5" />
 
-          {/* 5. Left (Port) Window Assembly */}
-          <g transform="translate(36, 120)">
-            {/* Window Cutout Bevel */}
+          {/* Aisle Emergency Escape LED Path Lighting */}
+          <line x1="240" y1="298" x2="360" y2="298" stroke="#38bdf8" strokeWidth="2" strokeDasharray="8 4" opacity="0.8" />
+
+          {/* 5. Left (Port) Dreamliner Window Assembly */}
+          <g transform="translate(42, 130)">
+            {/* Window Outer Bevel Frame */}
+            <rect
+              x="-4"
+              y="-4"
+              width="36"
+              height="88"
+              rx="16"
+              fill="#334155"
+              stroke="rgba(255, 255, 255, 0.5)"
+              strokeWidth="2"
+            />
+            {/* Glass Pane */}
             <rect
               x="0"
               y="0"
-              width="24"
-              height="60"
-              rx="10"
-              fill={isSunOnPort ? '#fbbf24' : isNight ? '#050814' : '#38bdf8'}
-              stroke="rgba(255, 255, 255, 0.4)"
-              strokeWidth="2.5"
-              filter={isSunOnPort ? 'url(#solarFlare)' : undefined}
+              width="28"
+              height="80"
+              rx="12"
+              fill={isSunOnPort ? '#fbbf24' : isNight ? '#030712' : '#38bdf8'}
+              stroke="rgba(255, 255, 255, 0.6)"
+              strokeWidth="1.5"
+              filter={isSunOnPort ? 'url(#windowSunFlare)' : undefined}
             />
 
             {/* Night Stars outside Port Window */}
             {isNight && (
               <>
-                <circle cx="8" cy="18" r="0.8" fill="#ffffff" opacity="0.9" />
-                <circle cx="16" cy="32" r="1.0" fill="#ffffff" opacity="0.8" />
-                <circle cx="10" cy="45" r="0.7" fill="#67e8f9" opacity="0.85" />
+                <circle cx="10" cy="22" r="1.2" fill="#ffffff" />
+                <circle cx="18" cy="40" r="1.5" fill="#fef08a" />
+                <circle cx="8" cy="60" r="1.0" fill="#67e8f9" />
               </>
             )}
 
-            {/* Window Blind / Electrochromic Shade */}
+            {/* Electrochromic Shade / Polarized Blind */}
             <rect
               x="2"
               y="2"
-              width="20"
-              height={portShadeDown ? 56 : 14}
-              rx="4"
-              fill="#1e293b"
-              stroke="#475569"
-              strokeWidth="1"
+              width="24"
+              height={portShadeDown ? 76 : 18}
+              rx="6"
+              fill="#0f172a"
+              stroke="#64748b"
+              strokeWidth="1.2"
               className="transition-all duration-500 ease-in-out"
             />
             {portShadeDown && (
-              <line x1="4" y1="30" x2="20" y2="30" stroke="#64748b" strokeWidth="1" strokeDasharray="2 2" />
+              <>
+                <line x1="4" y1="40" x2="24" y2="40" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3 2" />
+                <text x="14" y="65" textAnchor="middle" fill="#38bdf8" fontSize="8" fontFamily="monospace" fontWeight="bold">
+                  DIM
+                </text>
+              </>
             )}
           </g>
 
-          {/* 6. Right (Starboard) Window Assembly */}
-          <g transform="translate(480, 120)">
+          {/* 6. Right (Starboard) Dreamliner Window Assembly */}
+          <g transform="translate(530, 130)">
+            <rect
+              x="-4"
+              y="-4"
+              width="36"
+              height="88"
+              rx="16"
+              fill="#334155"
+              stroke="rgba(255, 255, 255, 0.5)"
+              strokeWidth="2"
+            />
             <rect
               x="0"
               y="0"
-              width="24"
-              height="60"
-              rx="10"
-              fill={isSunOnStarboard ? '#fbbf24' : isNight ? '#050814' : '#38bdf8'}
-              stroke="rgba(255, 255, 255, 0.4)"
-              strokeWidth="2.5"
-              filter={isSunOnStarboard ? 'url(#solarFlare)' : undefined}
+              width="28"
+              height="80"
+              rx="12"
+              fill={isSunOnStarboard ? '#fbbf24' : isNight ? '#030712' : '#38bdf8'}
+              stroke="rgba(255, 255, 255, 0.6)"
+              strokeWidth="1.5"
+              filter={isSunOnStarboard ? 'url(#windowSunFlare)' : undefined}
             />
 
             {/* Night Stars outside Starboard Window */}
             {isNight && (
               <>
-                <circle cx="16" cy="20" r="0.8" fill="#ffffff" opacity="0.9" />
-                <circle cx="8" cy="35" r="1.0" fill="#ffffff" opacity="0.8" />
-                <circle cx="14" cy="48" r="0.7" fill="#67e8f9" opacity="0.85" />
+                <circle cx="18" cy="24" r="1.2" fill="#ffffff" />
+                <circle cx="10" cy="44" r="1.5" fill="#fef08a" />
+                <circle cx="16" cy="62" r="1.0" fill="#67e8f9" />
               </>
             )}
 
-            {/* Window Blind / Electrochromic Shade */}
+            {/* Electrochromic Shade */}
             <rect
               x="2"
               y="2"
-              width="20"
-              height={starboardShadeDown ? 56 : 14}
-              rx="4"
-              fill="#1e293b"
-              stroke="#475569"
-              strokeWidth="1"
+              width="24"
+              height={starboardShadeDown ? 76 : 18}
+              rx="6"
+              fill="#0f172a"
+              stroke="#64748b"
+              strokeWidth="1.2"
               className="transition-all duration-500 ease-in-out"
             />
             {starboardShadeDown && (
-              <line x1="4" y1="30" x2="20" y2="30" stroke="#64748b" strokeWidth="1" strokeDasharray="2 2" />
+              <>
+                <line x1="4" y1="40" x2="24" y2="40" stroke="#94a3b8" strokeWidth="1" strokeDasharray="3 2" />
+                <text x="14" y="65" textAnchor="middle" fill="#38bdf8" fontSize="8" fontFamily="monospace" fontWeight="bold">
+                  DIM
+                </text>
+              </>
             )}
           </g>
 
           {/* 7. DYNAMIC VOLUMETRIC LIGHT BEAMS */}
-          {/* Port Sun Beam (If sun hitting Port and shade is open) */}
+          {/* Port Sun Beam (If sun hitting Port and shade is not dimmed) */}
           {isSunOnPort && !portShadeDown && (
             <polygon
-              points={`${portWindowX},122 ${portWindowX},178 ${portBeamTargetX},270 ${Math.max(80, portBeamTargetX - 90)},270`}
-              fill="url(#volumetricBeamPort)"
+              points={`${portWindowX},135 ${portWindowX},205 ${portBeamTargetX},300 ${Math.max(100, portBeamTargetX - 110)},300`}
+              fill="url(#volBeamPort)"
             />
           )}
 
-          {/* Starboard Sun Beam (If sun hitting Starboard and shade is open) */}
+          {/* Starboard Sun Beam (If sun hitting Starboard and shade is not dimmed) */}
           {isSunOnStarboard && !starboardShadeDown && (
             <polygon
-              points={`${starboardWindowX},122 ${starboardWindowX},178 ${starboardBeamTargetX},270 ${Math.min(460, starboardBeamTargetX + 90)},270`}
-              fill="url(#volumetricBeamStarboard)"
+              points={`${starboardWindowX},135 ${starboardWindowX},205 ${starboardBeamTargetX},300 ${Math.min(500, starboardBeamTargetX + 110)},300`}
+              fill="url(#volBeamStarboard)"
             />
           )}
 
-          {/* 8. LUXURY SEAT 12A [PORT] (Window Left Suite) */}
-          <g transform="translate(86, 150)">
-            {/* Emerald Beacon Aura & Stitching if Recommended */}
+          {/* 8. LUXURY FIRST/BUSINESS SUITE 12A [PORT] (Window Left) */}
+          <g transform="translate(95, 160)">
+            {/* Emerald Halo if Recommended */}
             {isPortRecommended && (
               <rect
-                x="-10"
+                x="-12"
                 y="-18"
-                width="84"
-                height="136"
-                rx="14"
+                width="104"
+                height="150"
+                rx="16"
                 fill="none"
                 stroke="#10b981"
-                strokeWidth="2.5"
-                filter="url(#emeraldBeaconGlow)"
+                strokeWidth="3"
+                filter="url(#emeraldSuiteGlow)"
               />
             )}
 
-            {/* Seat Back Cushion Shell */}
+            {/* Outer Pod Privacy Shell */}
             <rect
-              x="4"
+              x="0"
               y="0"
-              width="56"
-              height="85"
-              rx="8"
+              width="80"
+              height="100"
+              rx="12"
               fill={isPortRecommended ? '#064e3b' : isSunOnPort && !portShadeDown ? '#451a03' : '#1e293b'}
-              stroke={isPortRecommended ? '#10b981' : isSunOnPort ? '#f59e0b' : 'rgba(255,255,255,0.2)'}
-              strokeWidth="2"
+              stroke={isPortRecommended ? '#10b981' : isSunOnPort ? '#f59e0b' : 'rgba(255,255,255,0.3)'}
+              strokeWidth="2.5"
             />
 
-            {/* Emerald Stitching Accents */}
-            {isPortRecommended && (
-              <>
-                <line x1="12" y1="15" x2="52" y2="15" stroke="#34d399" strokeWidth="1.5" strokeDasharray="3 2" />
-                <line x1="12" y1="45" x2="52" y2="45" stroke="#34d399" strokeWidth="1.5" strokeDasharray="3 2" />
-                <line x1="12" y1="75" x2="52" y2="75" stroke="#34d399" strokeWidth="1.5" strokeDasharray="3 2" />
-              </>
-            )}
+            {/* Quilted Leather Horizontal Stitching */}
+            <line x1="12" y1="25" x2="68" y2="25" stroke={isPortRecommended ? '#34d399' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" strokeDasharray="4 2" />
+            <line x1="12" y1="50" x2="68" y2="50" stroke={isPortRecommended ? '#34d399' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" strokeDasharray="4 2" />
+            <line x1="12" y1="75" x2="68" y2="75" stroke={isPortRecommended ? '#34d399' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" strokeDasharray="4 2" />
 
-            {/* Ergonomic Headrest */}
+            {/* Ergonomic Adjustable Headrest with Wings */}
             <rect
               x="12"
-              y="-12"
-              width="40"
-              height="24"
-              rx="6"
+              y="-14"
+              width="56"
+              height="28"
+              rx="8"
               fill={isPortRecommended ? '#047857' : isSunOnPort ? '#78350f' : '#334155'}
-              stroke="rgba(255,255,255,0.15)"
-              strokeWidth="1.2"
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth="1.5"
             />
+            {/* Headrest Comfort Fold Wings */}
+            <path d="M 14 -12 L 20 12 L 14 12 Z" fill="rgba(0,0,0,0.3)" />
+            <path d="M 66 -12 L 60 12 L 66 12 Z" fill="rgba(0,0,0,0.3)" />
 
             {/* Seat Base Cushion */}
             <rect
-              x="0"
-              y="80"
-              width="64"
-              height="22"
-              rx="6"
+              x="-4"
+              y="94"
+              width="88"
+              height="24"
+              rx="8"
               fill={isPortRecommended ? '#065f46' : isSunOnPort && !portShadeDown ? '#451a03' : '#1e293b'}
-              stroke={isPortRecommended ? '#10b981' : 'rgba(255,255,255,0.2)'}
-              strokeWidth="1.5"
+              stroke={isPortRecommended ? '#10b981' : 'rgba(255,255,255,0.3)'}
+              strokeWidth="2"
             />
 
-            {/* Armrest Console */}
-            <rect x="58" y="60" width="12" height="30" rx="3" fill="#334155" />
+            {/* Suite Armrest Console & IFE Screen Mount */}
+            <rect x="74" y="65" width="16" height="42" rx="4" fill="#334155" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+            {/* Mini IFE Screen */}
+            <rect x="78" y="72" width="8" height="14" rx="2" fill="#0284c7" />
 
-            {/* Structural Pedestal */}
-            <line x1="14" y1="102" x2="14" y2="120" stroke="rgba(255,255,255,0.4)" strokeWidth="3" />
-            <line x1="50" y1="102" x2="50" y2="120" stroke="rgba(255,255,255,0.4)" strokeWidth="3" />
+            {/* Structural Floor Mount Stems */}
+            <line x1="16" y1="118" x2="16" y2="140" stroke="rgba(255,255,255,0.5)" strokeWidth="4" />
+            <line x1="64" y1="118" x2="64" y2="140" stroke="rgba(255,255,255,0.5)" strokeWidth="4" />
           </g>
 
-          {/* 9. LUXURY SEAT 12K [STARBOARD] (Window Right Suite) */}
-          <g transform="translate(390, 150)">
-            {/* Emerald Beacon Aura & Stitching if Recommended */}
+          {/* 9. LUXURY FIRST/BUSINESS SUITE 12K [STARBOARD] (Window Right) */}
+          <g transform="translate(425, 160)">
+            {/* Emerald Halo if Recommended */}
             {isStarboardRecommended && (
               <rect
-                x="-10"
+                x="-12"
                 y="-18"
-                width="84"
-                height="136"
-                rx="14"
+                width="104"
+                height="150"
+                rx="16"
                 fill="none"
                 stroke="#10b981"
-                strokeWidth="2.5"
-                filter="url(#emeraldBeaconGlow)"
+                strokeWidth="3"
+                filter="url(#emeraldSuiteGlow)"
               />
             )}
 
-            {/* Seat Back Cushion Shell */}
+            {/* Outer Pod Privacy Shell */}
             <rect
-              x="4"
+              x="0"
               y="0"
-              width="56"
-              height="85"
-              rx="8"
+              width="80"
+              height="100"
+              rx="12"
               fill={isStarboardRecommended ? '#064e3b' : isSunOnStarboard && !starboardShadeDown ? '#451a03' : '#1e293b'}
-              stroke={isStarboardRecommended ? '#10b981' : isSunOnStarboard ? '#f59e0b' : 'rgba(255,255,255,0.2)'}
-              strokeWidth="2"
+              stroke={isStarboardRecommended ? '#10b981' : isSunOnStarboard ? '#f59e0b' : 'rgba(255,255,255,0.3)'}
+              strokeWidth="2.5"
             />
 
-            {/* Emerald Stitching Accents */}
-            {isStarboardRecommended && (
-              <>
-                <line x1="12" y1="15" x2="52" y2="15" stroke="#34d399" strokeWidth="1.5" strokeDasharray="3 2" />
-                <line x1="12" y1="45" x2="52" y2="45" stroke="#34d399" strokeWidth="1.5" strokeDasharray="3 2" />
-                <line x1="12" y1="75" x2="52" y2="75" stroke="#34d399" strokeWidth="1.5" strokeDasharray="3 2" />
-              </>
-            )}
+            {/* Quilted Leather Horizontal Stitching */}
+            <line x1="12" y1="25" x2="68" y2="25" stroke={isStarboardRecommended ? '#34d399' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" strokeDasharray="4 2" />
+            <line x1="12" y1="50" x2="68" y2="50" stroke={isStarboardRecommended ? '#34d399' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" strokeDasharray="4 2" />
+            <line x1="12" y1="75" x2="68" y2="75" stroke={isStarboardRecommended ? '#34d399' : 'rgba(255,255,255,0.2)'} strokeWidth="1.5" strokeDasharray="4 2" />
 
-            {/* Ergonomic Headrest */}
+            {/* Ergonomic Adjustable Headrest with Wings */}
             <rect
               x="12"
-              y="-12"
-              width="40"
-              height="24"
-              rx="6"
+              y="-14"
+              width="56"
+              height="28"
+              rx="8"
               fill={isStarboardRecommended ? '#047857' : isSunOnStarboard ? '#78350f' : '#334155'}
-              stroke="rgba(255,255,255,0.15)"
-              strokeWidth="1.2"
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth="1.5"
             />
+            {/* Headrest Wings */}
+            <path d="M 14 -12 L 20 12 L 14 12 Z" fill="rgba(0,0,0,0.3)" />
+            <path d="M 66 -12 L 60 12 L 66 12 Z" fill="rgba(0,0,0,0.3)" />
 
             {/* Seat Base Cushion */}
             <rect
-              x="0"
-              y="80"
-              width="64"
-              height="22"
-              rx="6"
+              x="-4"
+              y="94"
+              width="88"
+              height="24"
+              rx="8"
               fill={isStarboardRecommended ? '#065f46' : isSunOnStarboard && !starboardShadeDown ? '#451a03' : '#1e293b'}
-              stroke={isStarboardRecommended ? '#10b981' : 'rgba(255,255,255,0.2)'}
-              strokeWidth="1.5"
+              stroke={isStarboardRecommended ? '#10b981' : 'rgba(255,255,255,0.3)'}
+              strokeWidth="2"
             />
 
-            {/* Armrest Console */}
-            <rect x="-6" y="60" width="12" height="30" rx="3" fill="#334155" />
+            {/* Suite Armrest Console & IFE */}
+            <rect x="-10" y="65" width="16" height="42" rx="4" fill="#334155" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+            <rect x="-6" y="72" width="8" height="14" rx="2" fill="#0284c7" />
 
-            {/* Structural Pedestal */}
-            <line x1="14" y1="102" x2="14" y2="120" stroke="rgba(255,255,255,0.4)" strokeWidth="3" />
-            <line x1="50" y1="102" x2="50" y2="120" stroke="rgba(255,255,255,0.4)" strokeWidth="3" />
+            {/* Structural Floor Mount Stems */}
+            <line x1="16" y1="118" x2="16" y2="140" stroke="rgba(255,255,255,0.5)" strokeWidth="4" />
+            <line x1="64" y1="118" x2="64" y2="140" stroke="rgba(255,255,255,0.5)" strokeWidth="4" />
           </g>
 
-          {/* Central Aisle Label */}
+          {/* 10. Center Aisle Readout */}
           <text
-            x="270"
-            y="262"
+            x="300"
+            y="288"
             textAnchor="middle"
-            fill="rgba(255, 255, 255, 0.25)"
-            fontSize="10"
+            fill="rgba(255, 255, 255, 0.4)"
+            fontSize="11"
             fontFamily="monospace"
-            letterSpacing="2"
+            letterSpacing="3"
+            fontWeight="bold"
           >
-            CENTER AISLE
+            MAIN CABIN AISLE
           </text>
 
-          {/* Seat Badges */}
+          {/* Seat Identifiers */}
           <text
-            x="118"
-            y="298"
+            x="135"
+            y="330"
             textAnchor="middle"
-            fill={isPortRecommended ? '#10b981' : '#f4f4f5'}
-            fontSize="12"
+            fill={isPortRecommended ? '#10b981' : '#ffffff'}
+            fontSize="13"
             fontWeight="bold"
             fontFamily="monospace"
           >
-            SEAT 12A [PORT]
+            SUITE 12A [PORT]
           </text>
 
           <text
-            x="422"
-            y="298"
+            x="465"
+            y="330"
             textAnchor="middle"
-            fill={isStarboardRecommended ? '#10b981' : '#f4f4f5'}
-            fontSize="12"
+            fill={isStarboardRecommended ? '#10b981' : '#ffffff'}
+            fontSize="13"
             fontWeight="bold"
             fontFamily="monospace"
           >
-            SEAT 12K [STARBOARD]
+            SUITE 12K [STARBOARD]
           </text>
 
-          {/* Recommended Floating Badges */}
+          {/* Floating Recommended Badges */}
           {isPortRecommended && (
-            <g transform="translate(118, 316)">
-              <rect x="-48" y="-10" width="96" height="18" rx="9" fill="#064e3b" stroke="#10b981" strokeWidth="1" />
-              <text x="0" y="3" textAnchor="middle" fill="#34d399" fontSize="9" fontWeight="bold" fontFamily="monospace">
+            <g transform="translate(135, 350)">
+              <rect x="-56" y="-10" width="112" height="20" rx="10" fill="#064e3b" stroke="#10b981" strokeWidth="1.5" />
+              <text x="0" y="4" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="bold" fontFamily="monospace">
                 [RECOMMENDED]
               </text>
             </g>
           )}
 
           {isStarboardRecommended && (
-            <g transform="translate(422, 316)">
-              <rect x="-48" y="-10" width="96" height="18" rx="9" fill="#064e3b" stroke="#10b981" strokeWidth="1" />
-              <text x="0" y="3" textAnchor="middle" fill="#34d399" fontSize="9" fontWeight="bold" fontFamily="monospace">
+            <g transform="translate(465, 350)">
+              <rect x="-56" y="-10" width="112" height="20" rx="10" fill="#064e3b" stroke="#10b981" strokeWidth="1.5" />
+              <text x="0" y="4" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="bold" fontFamily="monospace">
                 [RECOMMENDED]
               </text>
             </g>
@@ -494,34 +551,34 @@ export default function CabinCrossSection({
         {/* Port Status & Shade Toggle */}
         <div
           className={`p-3 rounded-lg border ${
-            isPortRecommended ? 'border-[var(--alert-emerald)] bg-emerald-950/20' : 'border-[var(--cockpit-border)] bg-zinc-900/40'
+            isPortRecommended ? 'border-[var(--alert-emerald)] bg-emerald-950/30' : 'border-[var(--cockpit-border)] bg-zinc-900/60'
           }`}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="font-bold text-[var(--foreground)]">PORT [12A]</span>
+            <span className="font-bold text-white text-xs">PORT SUITE [12A]</span>
             <button
               type="button"
               onClick={() => {
-                setAutoShade(false);
+                setAutoDim(false);
                 setPortShadeDown(!portShadeDown);
               }}
-              className="px-2 py-0.5 rounded text-[10px] font-mono-numbers bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-[var(--cockpit-border)] transition-colors"
+              className="px-2 py-0.5 rounded text-[10px] font-mono-numbers bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/10 transition-colors"
             >
-              {portShadeDown ? '[SHADE: DOWN]' : '[SHADE: UP]'}
+              {portShadeDown ? '[TINT: 100%]' : '[TINT: 0%]'}
             </button>
           </div>
           <div className="flex items-center gap-1.5 font-mono-numbers">
             {isSunOnPort ? (
               <span className="text-[var(--solar-amber)] font-medium inline-flex items-center gap-1">
-                <IconSun size={13} /> {portShadeDown ? 'GLARE BLOCKED' : 'DIRECT SOLAR GLARE'}
+                <IconSun size={13} /> {portShadeDown ? 'GLARE DEFLECTED' : 'DIRECT SOLAR GLARE'}
               </span>
             ) : isNight ? (
-              <span className="text-slate-400 inline-flex items-center gap-1">
+              <span className="text-slate-300 inline-flex items-center gap-1">
                 <IconShade size={13} /> NIGHT CABIN REST
               </span>
             ) : (
               <span className="text-[var(--cabin-cyan)] font-medium inline-flex items-center gap-1">
-                <IconShade size={13} /> PROTECTED SHADE
+                <IconShade size={13} /> COOL SHADE
               </span>
             )}
           </div>
@@ -530,34 +587,34 @@ export default function CabinCrossSection({
         {/* Starboard Status & Shade Toggle */}
         <div
           className={`p-3 rounded-lg border ${
-            isStarboardRecommended ? 'border-[var(--alert-emerald)] bg-emerald-950/20' : 'border-[var(--cockpit-border)] bg-zinc-900/40'
+            isStarboardRecommended ? 'border-[var(--alert-emerald)] bg-emerald-950/30' : 'border-[var(--cockpit-border)] bg-zinc-900/60'
           }`}
         >
           <div className="flex items-center justify-between mb-1.5">
-            <span className="font-bold text-[var(--foreground)]">STARBOARD [12K]</span>
+            <span className="font-bold text-white text-xs">STARBOARD SUITE [12K]</span>
             <button
               type="button"
               onClick={() => {
-                setAutoShade(false);
+                setAutoDim(false);
                 setStarboardShadeDown(!starboardShadeDown);
               }}
-              className="px-2 py-0.5 rounded text-[10px] font-mono-numbers bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-[var(--cockpit-border)] transition-colors"
+              className="px-2 py-0.5 rounded text-[10px] font-mono-numbers bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-white/10 transition-colors"
             >
-              {starboardShadeDown ? '[SHADE: DOWN]' : '[SHADE: UP]'}
+              {starboardShadeDown ? '[TINT: 100%]' : '[TINT: 0%]'}
             </button>
           </div>
           <div className="flex items-center gap-1.5 font-mono-numbers">
             {isSunOnStarboard ? (
               <span className="text-[var(--solar-amber)] font-medium inline-flex items-center gap-1">
-                <IconSun size={13} /> {starboardShadeDown ? 'GLARE BLOCKED' : 'DIRECT SOLAR GLARE'}
+                <IconSun size={13} /> {starboardShadeDown ? 'GLARE DEFLECTED' : 'DIRECT SOLAR GLARE'}
               </span>
             ) : isNight ? (
-              <span className="text-slate-400 inline-flex items-center gap-1">
+              <span className="text-slate-300 inline-flex items-center gap-1">
                 <IconShade size={13} /> NIGHT CABIN REST
               </span>
             ) : (
               <span className="text-[var(--cabin-cyan)] font-medium inline-flex items-center gap-1">
-                <IconShade size={13} /> PROTECTED SHADE
+                <IconShade size={13} /> COOL SHADE
               </span>
             )}
           </div>
