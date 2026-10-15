@@ -9,6 +9,7 @@ interface FlightFormData {
   destinationCity: string;
   departureTime: string;
   flightDuration: string;
+  preference: 'sun' | 'shade';
 }
 
 interface FlightFormProps {
@@ -37,10 +38,11 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
     destinationCity: '',
     departureTime: getCurrentDateTime(),
     flightDuration: '',
+    preference: 'sun',
   });
 
   // Validation state
-  const [fieldErrors, setFieldErrors] = useState<Partial<FlightFormData>>({});
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FlightFormData, string>>>({});
   const [touched, setTouched] = useState<TouchedFields>({});
 
   // Helper function to normalize airport values for comparison
@@ -137,7 +139,7 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
   };
 
   const validateAllFields = (): boolean => {
-    const errors: Partial<FlightFormData> = {};
+    const errors: Partial<Record<keyof FlightFormData, string>> = {};
     let isValid = true;
 
     (Object.keys(formData) as Array<keyof FlightFormData>).forEach(field => {
@@ -306,6 +308,41 @@ export default function FlightForm({ formAction, isLoading = false }: FlightForm
             ? `✅ Parsed as: ${Math.floor(parseDurationToMinutes(formData.flightDuration)! / 60)}h ${parseDurationToMinutes(formData.flightDuration)! % 60}m`
             : 'Enter flight duration (e.g. "2h 30m", "2:30", or "150 minutes")'
           }
+        </span>
+      </div>
+
+      <div className={styles.formGroup}>
+        <label className={styles.label}>
+          Seat Preference
+        </label>
+        <div className={styles.preferenceToggle} role="radiogroup" aria-label="Seat Preference">
+          <label className={`${styles.preferenceOption} ${formData.preference === 'sun' ? styles.preferenceActive : ''}`}>
+            <input
+              type="radio"
+              name="preference"
+              value="sun"
+              checked={formData.preference === 'sun'}
+              onChange={() => setFormData(prev => ({ ...prev, preference: 'sun' }))}
+              className={styles.hiddenRadio}
+            />
+            <span className={styles.preferenceIcon}>☀️</span>
+            <span>Scenic Sun & Views</span>
+          </label>
+          <label className={`${styles.preferenceOption} ${formData.preference === 'shade' ? styles.preferenceActive : ''}`}>
+            <input
+              type="radio"
+              name="preference"
+              value="shade"
+              checked={formData.preference === 'shade'}
+              onChange={() => setFormData(prev => ({ ...prev, preference: 'shade' }))}
+              className={styles.hiddenRadio}
+            />
+            <span className={styles.preferenceIcon}>🕶️</span>
+            <span>Max Shade & Sleep</span>
+          </label>
+        </div>
+        <span className={styles.description}>
+          Choose whether you want golden hour scenic views or shade to avoid glare and sleep.
         </span>
       </div>
 

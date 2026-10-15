@@ -31,6 +31,7 @@ interface FlightRecommendationData {
   recommendation: 'left' | 'right' | 'either';
   confidence: number;
   description: string;
+  preference?: 'sun' | 'shade';
   events: SunEvent[];
   globeData: {
     departure: Airport;
@@ -43,6 +44,7 @@ interface FlightRecommendationData {
       totalSunsetEvents: number;
       averageSunVisibility: number;
       bestViewingSide: 'left' | 'right' | 'either';
+      bestShadeSide?: 'left' | 'right' | 'either';
     };
   };
 }

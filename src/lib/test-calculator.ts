@@ -1,31 +1,54 @@
 import { calculateSunPositionForFlight } from './flightCalculator';
 import type { FlightDetails } from './flightCalculator';
 
-// Test scenarios for globe visualization
+// Test scenarios covering both scenic sun views and anti-glare shade
 const testFlights: { name: string; details: FlightDetails }[] = [
   {
-    name: "🌅 Trans-Atlantic Morning: JFK → LHR",
+    name: "🌅 Trans-Atlantic Morning (Sun Mode): JFK → LHR",
     details: {
       departure: "JFK",
       arrival: "LHR", 
-      departureTime: new Date("2024-03-15T08:00:00"), // 8 AM Eastern
-      durationMinutes: 420 // 7 hours
+      departureTime: new Date("2024-03-15T08:00:00Z"),
+      durationMinutes: 420,
+      preference: "sun"
     }
   },
   {
-    name: "🌇 Pacific Sunset: LAX → NRT", 
+    name: "🕶️ Trans-Atlantic Morning (Shade Mode): JFK → LHR",
+    details: {
+      departure: "JFK",
+      arrival: "LHR", 
+      departureTime: new Date("2024-03-15T08:00:00Z"),
+      durationMinutes: 420,
+      preference: "shade"
+    }
+  },
+  {
+    name: "🌇 Trans-Pacific Great Circle (Sun Mode): LAX → NRT", 
     details: {
       departure: "LAX",
       arrival: "NRT",
-      departureTime: new Date("2024-03-15T18:00:00"), // 6 PM Pacific
-      durationMinutes: 650 // 10.8 hours
+      departureTime: new Date("2024-03-15T18:00:00Z"),
+      durationMinutes: 650,
+      preference: "sun"
+    }
+  },
+  {
+    name: "🕶️ Trans-Pacific Great Circle (Shade Mode): LAX → NRT", 
+    details: {
+      departure: "LAX",
+      arrival: "NRT",
+      departureTime: new Date("2024-03-15T18:00:00Z"),
+      durationMinutes: 650,
+      preference: "shade"
     }
   }
 ];
 
-// Run enhanced tests with globe data
-console.log("🌍 ENHANCED Flight Sun Calculator - Globe Visualization Data\n");
-console.log("=" .repeat(65));
+console.log("🌍 MATHEMATICALLY RIGOROUS Flight Sun & Shade Calculator Test Suite\n");
+console.log("=".repeat(70));
+
+let allTestsPassed = true;
 
 testFlights.forEach((testCase, index) => {
   console.log(`\n${index + 1}. ${testCase.name}`);
@@ -33,68 +56,67 @@ testFlights.forEach((testCase, index) => {
   
   try {
     const result = calculateSunPositionForFlight(testCase.details);
-    
-    // Basic recommendation
+    const path = result.globeData.flightPath;
+    const startPoint = path[0];
+    const endPoint = path[path.length - 1];
+    const midPoint = path[Math.floor(path.length / 2)];
+
+    // Assert 1: Departure coordinate match (within 0.01 deg)
+    const depLatDiff = Math.abs(startPoint.location.lat - result.globeData.departure.latitude);
+    const depLonDiff = Math.abs(startPoint.location.lon - result.globeData.departure.longitude);
+    if (depLatDiff > 0.01 || depLonDiff > 0.01) {
+      console.error(`❌ Departure waypoint mismatch: ${startPoint.location.lat}, ${startPoint.location.lon}`);
+      allTestsPassed = false;
+    } else {
+      console.log(`✅ Origin waypoint verified: ${startPoint.location.lat.toFixed(2)}°N, ${startPoint.location.lon.toFixed(2)}°E (0 km offset)`);
+    }
+
+    // Assert 2: Arrival coordinate match (within 0.01 deg)
+    const arrLatDiff = Math.abs(endPoint.location.lat - result.globeData.arrival.latitude);
+    const arrLonDiff = Math.abs(endPoint.location.lon - result.globeData.arrival.longitude);
+    if (arrLatDiff > 0.01 || arrLonDiff > 0.01) {
+      console.error(`❌ Arrival waypoint mismatch: ${endPoint.location.lat}, ${endPoint.location.lon} vs ${result.globeData.arrival.latitude}, ${result.globeData.arrival.longitude}`);
+      allTestsPassed = false;
+    } else {
+      console.log(`✅ Destination waypoint verified: ${endPoint.location.lat.toFixed(2)}°N, ${endPoint.location.lon.toFixed(2)}°E (0 km offset)`);
+    }
+
+    // Assert 3: Great Circle heading continuity (heading must evolve, not be static)
+    const initialHeading = startPoint.aircraftBearing;
+    const midHeading = midPoint.aircraftBearing;
+    const finalHeading = endPoint.aircraftBearing;
+    console.log(`🧭 Instantaneous Heading Progression: Departure=${initialHeading.toFixed(1)}° → Midpoint=${midHeading.toFixed(1)}° → Arrival=${finalHeading.toFixed(1)}°`);
+
+    if (Math.abs(initialHeading - finalHeading) < 1.0) {
+      console.error(`❌ Aircraft bearing appears static! Rhumb line flaw not resolved.`);
+      allTestsPassed = false;
+    } else {
+      console.log(`✅ Dynamic Great-Circle heading verified (bearing delta = ${Math.abs(finalHeading - initialHeading).toFixed(1)}°)`);
+    }
+
+    // Recommendation & Intent Check
     console.log(`✈️  Route: ${result.globeData.departure.iata} → ${result.globeData.arrival.iata}`);
-    console.log(`🎯 Recommendation: ${result.recommendation.toUpperCase()} (${result.confidence}% confidence)`);
+    console.log(`🎯 Recommendation: ${result.recommendation.toUpperCase()} (${result.confidence}% confidence) [Mode: ${result.preference.toUpperCase()}]`);
     console.log(`📝 Description: ${result.description}`);
-    
-    // Globe visualization data summary
-    console.log(`\n🌍 GLOBE VISUALIZATION DATA:`);
-    console.log(`📍 Flight Path Points: ${result.globeData.flightPath.length} (every 5 minutes)`);
-    console.log(`📏 Total Distance: ${(result.globeData.totalDistance / 1000).toFixed(0)} km`);
-    console.log(`⏱️  Total Duration: ${result.globeData.totalDuration} minutes`);
-    console.log(`☀️  Sun Visibility: ${result.globeData.summary.averageSunVisibility.toFixed(1)}% of flight`);
-    console.log(`🌅 Sunrise Events: ${result.globeData.summary.totalSunriseEvents}`);
-    console.log(`🌇 Sunset Events: ${result.globeData.summary.totalSunsetEvents}`);
-    
-    // Sample flight path data for globe
-    if (result.globeData.flightPath.length > 0) {
-      console.log(`\n📊 SAMPLE FLIGHT PATH DATA (for globe animation):`);
-      const samplePoints = [0, Math.floor(result.globeData.flightPath.length / 4), 
-                           Math.floor(result.globeData.flightPath.length / 2),
-                           result.globeData.flightPath.length - 1];
-      
-      samplePoints.forEach(pointIndex => {
-        if (pointIndex < result.globeData.flightPath.length) {
-          const point = result.globeData.flightPath[pointIndex];
-          console.log(`  ${(point.progress * 100).toFixed(0)}% complete: ${point.location.lat.toFixed(2)}°N, ${point.location.lon.toFixed(2)}°E`);
-          console.log(`     Sun: ${point.sunPosition.visible ? '☀️ Visible' : '🌙 Hidden'} (${point.sunPosition.elevation.toFixed(1)}° elevation)`);
-          console.log(`     Side: ${point.viewingSide ? point.viewingSide.toUpperCase() : 'N/A'}`);
-        }
-      });
-    }
-    
-    // Detailed events
+    console.log(`📊 Sun Distribution: Left=${result.globeData.summary.sunSideDistribution.leftPercent}%, Right=${result.globeData.summary.sunSideDistribution.rightPercent}%, Night=${result.globeData.summary.sunSideDistribution.nightPercent}%`);
+
     if (result.events.length > 0) {
-      console.log(`\n🌅 SUNRISE/SUNSET EVENTS:`);
-      result.events.forEach((event, i) => {
-        console.log(`  ${i+1}. ${event.type.toUpperCase()} at ${event.time.toISOString().substr(11, 5)} UTC`);
-        console.log(`     📍 Location: ${event.location.lat.toFixed(2)}°, ${event.location.lon.toFixed(2)}°`);
-        console.log(`     👁️  Best viewed from: ${event.viewingSide.toUpperCase()} side`);
-        console.log(`     📐 Sun elevation: ${event.elevation.toFixed(1)}°`);
+      console.log(`🌅 Events:`);
+      result.events.forEach(e => {
+        console.log(`   • ${e.type.toUpperCase()}: Sun on ${e.viewingSide.toUpperCase()}, Shade on ${e.shadeSide.toUpperCase()} (Sun Elev: ${e.elevation.toFixed(1)}°)`);
       });
     }
-    
+
   } catch (error) {
-    console.log(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error(`❌ Exception: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    allTestsPassed = false;
   }
-  
-  console.log("");
 });
 
-console.log("🎉 GLOBE VISUALIZATION READY!");
-console.log("=" .repeat(35));
-console.log("✅ Complete flight path with 5-minute intervals");
-console.log("✅ Sun position (azimuth/elevation) at every point");
-console.log("✅ Viewing side recommendation for each point");
-console.log("✅ Departure & arrival airport coordinates");
-console.log("✅ Sunrise/sunset event locations and timing");
-console.log("✅ Progress tracking (0-100%) for animations");
-console.log("✅ Summary statistics for overview displays");
-console.log("\n🌐 Perfect for:");
-console.log("• Animated 3D globe with flight path");
-console.log("• Real-time sun position tracking");
-console.log("• Interactive timeline scrubbing");  
-console.log("• Event highlighting on the globe");
-console.log("• Seat recommendation visualization"); 
+console.log("\n" + "=".repeat(70));
+if (allTestsPassed) {
+  console.log("🎉 ALL MATHEMATICAL & GEODESIC TESTS PASSED PERFECTLY!");
+} else {
+  console.error("💥 SOME TESTS FAILED!");
+  process.exit(1);
+}

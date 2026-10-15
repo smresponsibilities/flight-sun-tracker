@@ -7,6 +7,7 @@ interface RecommendationRequest {
   arrival: string;
   departureTime: string; // ISO string that we'll convert to Date
   durationMinutes: number;
+  preference?: 'sun' | 'shade';
 }
 
 // Response interfaces
@@ -151,6 +152,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       arrival: body.arrival.trim().toUpperCase(),
       departureTime: departureDate!,
       durationMinutes: body.durationMinutes,
+      preference: body.preference === 'shade' ? 'shade' : 'sun',
     };
     
     // Call the calculator function

@@ -22,6 +22,7 @@ interface FlightFormData {
   destinationCity: string
   departureTime: string
   flightDuration: string
+  preference?: 'sun' | 'shade'
 }
 
 /**
@@ -34,11 +35,15 @@ export async function getFlightRecommendation(
 ): Promise<FlightRecommendationState> {
   try {
     // Extract form data
+    const rawPreference = formData.get('preference') as string | null
+    const preference: 'sun' | 'shade' = rawPreference === 'shade' ? 'shade' : 'sun'
+
     const rawData: FlightFormData = {
       sourceCity: formData.get('sourceCity') as string,
       destinationCity: formData.get('destinationCity') as string, 
       departureTime: formData.get('departureTime') as string,
       flightDuration: formData.get('flightDuration') as string,
+      preference
     }
 
     // Basic validation
@@ -88,7 +93,8 @@ export async function getFlightRecommendation(
       departure,
       arrival,
       departureTime: new Date(rawData.departureTime).toISOString(),
-      durationMinutes
+      durationMinutes,
+      preference
     }
 
     // Call the calculation function directly (more efficient than HTTP request)
@@ -98,7 +104,8 @@ export async function getFlightRecommendation(
       departure: departure,
       arrival: arrival,
       departureTime: new Date(apiPayload.departureTime),
-      durationMinutes: apiPayload.durationMinutes
+      durationMinutes: apiPayload.durationMinutes,
+      preference
     }
 
     const recommendation = calculateSunPositionForFlight(flightDetails)
