@@ -1,13 +1,15 @@
 # Flight Sun Tracker — Airplane Window Seat Shade & Sun Calculator
 
-[![Live Case Study](https://img.shields.io/badge/Live_Case_Study-shivammahajan.com-3b82f6?style=flat&logo=googlechrome&logoColor=white)](https://shivammahajan.com/projects/flight-sun-tracker/)
+[![Live App](https://img.shields.io/badge/Live_App-Vercel-3b82f6?style=flat&logo=vercel&logoColor=white)](https://flight-sun-tracker-shivam-mahajans-projects.vercel.app)
+[![Case Study](https://img.shields.io/badge/Case_Study-shivammahajan.com-3b82f6?style=flat&logo=googlechrome&logoColor=white)](https://shivammahajan.com/projects/flight-sun-tracker/)
 [![Author](https://img.shields.io/badge/Author-Shivam_Mahajan-success?style=flat)](https://shivammahajan.com/)
 [![Language: TypeScript](https://img.shields.io/badge/Language-TypeScript-3178c6?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 An open-source interactive web application and solar elevation calculator that models flight trajectories and calculates the sun's position relative to an aircraft's heading along any great-circle route.
 
-**Read the full technical case study:** **[Flight Sun Tracker Architecture & Solar Math (shivammahajan.com)](https://shivammahajan.com/projects/flight-sun-tracker/)**
+* **Live Interactive App:** **[https://flight-sun-tracker-shivam-mahajans-projects.vercel.app](https://flight-sun-tracker-shivam-mahajans-projects.vercel.app)**
+* **Technical Case Study & Architecture:** **[Flight Sun Tracker Architecture & Solar Math (shivammahajan.com)](https://shivammahajan.com/projects/flight-sun-tracker/)**
 
 ---
 
@@ -41,7 +43,7 @@ Flight Sun Tracker eliminates guesswork by calculating second-by-second solar el
                      │
                      │  Aircraft
                      │
-                     ├─── θ (Relative Azimuth) ───► ☼ (Sun Position)
+                     ├─── θ (Relative Azimuth) ───► Sun Position
                     / \
                    /   \
                Port     Starboard
