@@ -26,6 +26,14 @@ export default function CabinCrossSection({
   const isSunOnStarboard = !isNight && relativeAzimuth > 0 && relativeAzimuth < 180;
   const isSunOnPort = !isNight && relativeAzimuth > 180 && relativeAzimuth < 360;
 
+  // Real-time instantaneous dynamic seat recommendation based on current solar vector
+  const isPortRecommended = !isNight && (
+    recommendedSide === 'left' || (recommendedSide !== 'right' && (activePreference === 'shade' ? isSunOnStarboard : isSunOnPort))
+  );
+  const isStarboardRecommended = !isNight && (
+    recommendedSide === 'right' || (recommendedSide !== 'left' && (activePreference === 'shade' ? isSunOnPort : isSunOnStarboard))
+  );
+
   // Electrochromic Window Shades State (Smart auto-dimming on glare side)
   const [portShadeDown, setPortShadeDown] = useState(false);
   const [starboardShadeDown, setStarboardShadeDown] = useState(false);
@@ -53,9 +61,6 @@ export default function CabinCrossSection({
   const beamDepth = 150 / Math.tan(rayAngleRad);
   const portBeamTargetX = Math.min(380, portWindowX + Math.max(90, beamDepth));
   const starboardBeamTargetX = Math.max(220, starboardWindowX - Math.max(90, beamDepth));
-
-  const isPortRecommended = recommendedSide === 'left' || recommendedSide === 'either';
-  const isStarboardRecommended = recommendedSide === 'right' || recommendedSide === 'either';
 
   return (
     <div className="cockpit-card rounded-xl p-5 border border-[var(--cockpit-border)] relative overflow-hidden flex flex-col justify-between shadow-2xl">
@@ -218,7 +223,6 @@ export default function CabinCrossSection({
 
           {/* 5. Left (Port) Dreamliner Window Assembly */}
           <g transform="translate(42, 130)">
-            {/* Window Outer Bevel Frame */}
             <rect
               x="-4"
               y="-4"
@@ -229,7 +233,6 @@ export default function CabinCrossSection({
               stroke="rgba(255, 255, 255, 0.5)"
               strokeWidth="2"
             />
-            {/* Glass Pane */}
             <rect
               x="0"
               y="0"
@@ -329,7 +332,7 @@ export default function CabinCrossSection({
           </g>
 
           {/* 7. DYNAMIC VOLUMETRIC LIGHT BEAMS */}
-          {/* Port Sun Beam (If sun hitting Port and shade is not dimmed) */}
+          {/* Port Sun Beam */}
           {isSunOnPort && !portShadeDown && (
             <polygon
               points={`${portWindowX},135 ${portWindowX},205 ${portBeamTargetX},300 ${Math.max(100, portBeamTargetX - 110)},300`}
@@ -337,7 +340,7 @@ export default function CabinCrossSection({
             />
           )}
 
-          {/* Starboard Sun Beam (If sun hitting Starboard and shade is not dimmed) */}
+          {/* Starboard Sun Beam */}
           {isSunOnStarboard && !starboardShadeDown && (
             <polygon
               points={`${starboardWindowX},135 ${starboardWindowX},205 ${starboardBeamTargetX},300 ${Math.min(500, starboardBeamTargetX + 110)},300`}
@@ -390,7 +393,7 @@ export default function CabinCrossSection({
               stroke="rgba(255,255,255,0.3)"
               strokeWidth="1.5"
             />
-            {/* Headrest Comfort Fold Wings */}
+            {/* Headrest Wings */}
             <path d="M 14 -12 L 20 12 L 14 12 Z" fill="rgba(0,0,0,0.3)" />
             <path d="M 66 -12 L 60 12 L 66 12 Z" fill="rgba(0,0,0,0.3)" />
 
@@ -406,9 +409,8 @@ export default function CabinCrossSection({
               strokeWidth="2"
             />
 
-            {/* Suite Armrest Console & IFE Screen Mount */}
+            {/* Suite Armrest Console & IFE */}
             <rect x="74" y="65" width="16" height="42" rx="4" fill="#334155" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-            {/* Mini IFE Screen */}
             <rect x="78" y="72" width="8" height="14" rx="2" fill="#0284c7" />
 
             {/* Structural Floor Mount Stems */}
@@ -540,6 +542,15 @@ export default function CabinCrossSection({
               <rect x="-56" y="-10" width="112" height="20" rx="10" fill="#064e3b" stroke="#10b981" strokeWidth="1.5" />
               <text x="0" y="4" textAnchor="middle" fill="#34d399" fontSize="10" fontWeight="bold" fontFamily="monospace">
                 [RECOMMENDED]
+              </text>
+            </g>
+          )}
+
+          {isNight && (
+            <g transform="translate(300, 350)">
+              <rect x="-80" y="-10" width="160" height="20" rx="10" fill="#1e1b4b" stroke="#6366f1" strokeWidth="1" />
+              <text x="0" y="4" textAnchor="middle" fill="#a5b4fc" fontSize="9" fontWeight="bold" fontFamily="monospace">
+                [NIGHT: ZERO SOLAR GLARE]
               </text>
             </g>
           )}

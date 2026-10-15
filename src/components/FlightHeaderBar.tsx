@@ -14,7 +14,9 @@ export interface PopularRoute {
 
 export const POPULAR_ROUTES: PopularRoute[] = [
   { dep: 'JFK', arr: 'LHR', depName: 'New York', arrName: 'London', durationMinutes: 420 },
+  { dep: 'LHR', arr: 'JFK', depName: 'London', arrName: 'New York', durationMinutes: 480 },
   { dep: 'SFO', arr: 'NRT', depName: 'San Francisco', arrName: 'Tokyo', durationMinutes: 650 },
+  { dep: 'NRT', arr: 'SFO', depName: 'Tokyo', arrName: 'San Francisco', durationMinutes: 570 },
   { dep: 'DXB', arr: 'CDG', depName: 'Dubai', arrName: 'Paris', durationMinutes: 440 },
   { dep: 'DEL', arr: 'LHR', depName: 'Delhi', arrName: 'London', durationMinutes: 560 },
 ];
@@ -32,6 +34,7 @@ interface FlightHeaderBarProps {
   onTogglePreference: (pref: 'sun' | 'shade') => void;
   onToggleMapMode: (mode: '3d' | '2d') => void;
   onSelectRoute: (dep: string, arr: string, durationMinutes: number) => void;
+  onSwapRoute: () => void;
   onOpenRouteConfig: () => void;
 }
 
@@ -48,6 +51,7 @@ export default function FlightHeaderBar({
   onTogglePreference,
   onToggleMapMode,
   onSelectRoute,
+  onSwapRoute,
   onOpenRouteConfig,
 }: FlightHeaderBarProps) {
   // Flight Times & Offsets
@@ -76,7 +80,7 @@ export default function FlightHeaderBar({
       <div className="p-5 sm:p-6 border-b border-white/10">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           {/* Origin Airport Block */}
-          <div className="flex items-center gap-5 sm:gap-8">
+          <div className="flex items-center gap-4 sm:gap-6">
             <div>
               <div className="text-3xl sm:text-4xl font-black font-mono-numbers tracking-tight text-white flex items-center gap-2">
                 <span>{departureIata}</span>
@@ -84,7 +88,7 @@ export default function FlightHeaderBar({
                   {depUtcOffset}
                 </span>
               </div>
-              <div className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider font-medium truncate max-w-[160px] mt-0.5">
+              <div className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider font-medium truncate max-w-[150px] mt-0.5">
                 {departureName}
               </div>
               <div className="text-sm font-mono-numbers font-semibold text-zinc-300 mt-1">
@@ -92,21 +96,27 @@ export default function FlightHeaderBar({
               </div>
             </div>
 
-            {/* Center Flight Corridor Vector Visual */}
-            <div className="flex flex-col items-center px-2 sm:px-4">
-              <div className="text-[10px] sm:text-[11px] font-mono-numbers text-[var(--cabin-cyan)] font-semibold tracking-wider uppercase mb-1">
-                NON-STOP
-              </div>
-              <div className="flex items-center gap-2 w-28 sm:w-44 text-zinc-600">
+            {/* Center Flight Corridor Vector Visual with Swap Button */}
+            <div className="flex flex-col items-center px-1 sm:px-3">
+              <button
+                type="button"
+                onClick={onSwapRoute}
+                className="text-[10px] sm:text-[11px] font-mono-numbers text-[var(--cabin-cyan)] hover:text-white font-semibold tracking-wider uppercase mb-1 px-2 py-0.5 rounded bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 transition-colors"
+                title="Swap origin and destination"
+              >
+                [SWAP ROUTE]
+              </button>
+
+              <div className="flex items-center gap-2 w-24 sm:w-36 text-zinc-600">
                 <div className="w-2 h-2 rounded-full bg-[var(--solar-amber)] shadow-sm shadow-amber-500/50" />
                 <div className="flex-1 h-[2px] bg-gradient-to-r from-[var(--solar-amber)] via-zinc-500 to-[var(--alert-emerald)] relative">
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white">
-                    <IconPlane size={15} className="rotate-90 text-white drop-shadow" />
+                    <IconPlane size={14} className="rotate-90 text-white drop-shadow" />
                   </div>
                 </div>
                 <div className="w-2 h-2 rounded-full bg-[var(--alert-emerald)] shadow-sm shadow-emerald-500/50" />
               </div>
-              <div className="text-[10px] sm:text-[11px] font-mono-numbers text-[var(--foreground-muted)] mt-1">
+              <div className="text-[10px] font-mono-numbers text-[var(--foreground-muted)] mt-1">
                 GREAT CIRCLE
               </div>
             </div>
@@ -119,7 +129,7 @@ export default function FlightHeaderBar({
                   {arrUtcOffset}
                 </span>
               </div>
-              <div className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider font-medium truncate max-w-[160px] mt-0.5">
+              <div className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider font-medium truncate max-w-[150px] mt-0.5">
                 {arrivalName}
               </div>
               <div className="text-sm font-mono-numbers font-semibold text-zinc-300 mt-1">

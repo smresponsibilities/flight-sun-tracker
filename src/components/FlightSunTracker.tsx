@@ -71,6 +71,26 @@ export default function FlightSunTracker() {
   const currentAircraftBearing = currentPoint?.aircraftBearing ?? 0;
   const relativeAzimuth = ((currentSunAzimuth - currentAircraftBearing + 360) % 360);
 
+  // Dynamic real-time instantaneous seat recommendation for active scrubber waypoint
+  const currentWaypointRecommendation: 'left' | 'right' | 'either' = useMemo(() => {
+    if (currentSunElevation <= 0) {
+      return 'either'; // Both sides are in darkness during night
+    }
+    const isSunRight = relativeAzimuth > 0 && relativeAzimuth < 180;
+    const isSunLeft = relativeAzimuth > 180 && relativeAzimuth < 360;
+
+    if (preference === 'shade') {
+      if (isSunRight) return 'left';  // Sun is on right -> sit on left (Port 12A) for shade
+      if (isSunLeft) return 'right';  // Sun is on left -> sit on right (Starboard 12K) for shade
+      return 'either';
+    } else {
+      // Preference: scenic sun
+      if (isSunRight) return 'right'; // Sun is on right -> sit on right (Starboard 12K) for scenic sun
+      if (isSunLeft) return 'left';   // Sun is on left -> sit on left (Port 12A) for scenic sun
+      return 'either';
+    }
+  }, [currentSunElevation, relativeAzimuth, preference]);
+
   // Preference Toggle Handler
   const handleTogglePreference = useCallback((pref: 'sun' | 'shade') => {
     setFlightDetails((prev) => ({
@@ -86,6 +106,15 @@ export default function FlightSunTracker() {
       departure: dep,
       arrival: arr,
       durationMinutes: durationMin || prev.durationMinutes,
+    }));
+  }, []);
+
+  // Swap Route Direction Handler (Reverse origin & destination)
+  const handleSwapRoute = useCallback(() => {
+    setFlightDetails((prev) => ({
+      ...prev,
+      departure: prev.arrival,
+      arrival: prev.departure,
     }));
   }, []);
 
@@ -139,6 +168,7 @@ export default function FlightSunTracker() {
           onTogglePreference={handleTogglePreference}
           onToggleMapMode={setMapMode}
           onSelectRoute={handleSelectRoute}
+          onSwapRoute={handleSwapRoute}
           onOpenRouteConfig={() => setIsRouteModalOpen(true)}
         />
 
@@ -196,7 +226,7 @@ export default function FlightSunTracker() {
               <CabinCrossSection
                 sunElevation={currentSunElevation}
                 relativeAzimuth={relativeAzimuth}
-                recommendedSide={recommendation}
+                recommendedSide={currentWaypointRecommendation}
                 activePreference={preference}
                 aircraftBearing={currentAircraftBearing}
                 sunAzimuth={currentSunAzimuth}
@@ -341,11 +371,11 @@ export default function FlightSunTracker() {
               totalDurationMinutes={flightDetails.durationMinutes}
             />
 
-            {/* Cabin Cross-Section */}
+            {/* Cabin Cross-Section with Real-time Waypoint Recommendation */}
             <CabinCrossSection
               sunElevation={currentSunElevation}
               relativeAzimuth={relativeAzimuth}
-              recommendedSide={recommendation}
+              recommendedSide={currentWaypointRecommendation}
               activePreference={preference}
               aircraftBearing={currentAircraftBearing}
               sunAzimuth={currentSunAzimuth}
