@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { Airport, FlightPathPoint } from '@/lib/flightCalculator';
-import { CONTINENTS } from '@/lib/data/worldLand';
 import { getSubsolarPoint } from '@/lib/solarTerminator';
 import { IconPlane } from './AviationIcons';
 
@@ -18,325 +17,133 @@ interface ThreeGlobeViewProps {
 
 const GLOBE_RADIUS = 100;
 
-// High-density world cities for realistic NASA night lights
-const GLOBAL_CITIES = [
-  // North America
-  { lat: 40.71, lon: -74.00, size: 5 }, // NYC
-  { lat: 34.05, lon: -118.24, size: 5 },// LA
-  { lat: 41.87, lon: -87.62, size: 4 }, // Chicago
-  { lat: 29.76, lon: -95.36, size: 4 }, // Houston
-  { lat: 33.74, lon: -84.38, size: 4 }, // Atlanta
-  { lat: 25.76, lon: -80.19, size: 4 }, // Miami
-  { lat: 37.77, lon: -122.41, size: 4 },// San Francisco
-  { lat: 47.60, lon: -122.33, size: 4 },// Seattle
-  { lat: 38.90, lon: -77.03, size: 4 }, // Washington DC
-  { lat: 42.36, lon: -71.05, size: 4 }, // Boston
-  { lat: 43.65, lon: -79.38, size: 4 }, // Toronto
-  { lat: 45.50, lon: -73.56, size: 4 }, // Montreal
-  { lat: 49.28, lon: -123.12, size: 3 },// Vancouver
-  { lat: 19.43, lon: -99.13, size: 5 }, // Mexico City
-  // Europe
-  { lat: 51.50, lon: -0.12, size: 5 },  // London
-  { lat: 48.85, lon: 2.35, size: 5 },   // Paris
-  { lat: 50.11, lon: 8.68, size: 4 },   // Frankfurt
-  { lat: 52.52, lon: 13.40, size: 4 },  // Berlin
-  { lat: 52.36, lon: 4.90, size: 4 },   // Amsterdam
-  { lat: 50.85, lon: 4.35, size: 4 },   // Brussels
-  { lat: 41.90, lon: 12.49, size: 4 },  // Rome
-  { lat: 45.46, lon: 9.19, size: 4 },   // Milan
-  { lat: 40.41, lon: -3.70, size: 4 },  // Madrid
-  { lat: 41.38, lon: 2.17, size: 4 },   // Barcelona
-  { lat: 55.75, lon: 37.61, size: 5 },  // Moscow
-  { lat: 59.93, lon: 30.33, size: 4 },  // St Petersburg
-  { lat: 59.32, lon: 18.06, size: 3 },  // Stockholm
-  { lat: 55.67, lon: 12.56, size: 3 },  // Copenhagen
-  { lat: 48.20, lon: 16.37, size: 3 },  // Vienna
-  { lat: 47.37, lon: 8.54, size: 3 },   // Zurich
-  { lat: 53.34, lon: -6.26, size: 3 },  // Dublin
-  { lat: 37.98, lon: 23.72, size: 4 },  // Athens
-  { lat: 41.00, lon: 28.97, size: 5 },  // Istanbul
-  // Middle East & Africa
-  { lat: 25.20, lon: 55.27, size: 5 },  // Dubai
-  { lat: 24.45, lon: 54.37, size: 4 },  // Abu Dhabi
-  { lat: 24.71, lon: 46.67, size: 4 },  // Riyadh
-  { lat: 32.08, lon: 34.78, size: 4 },  // Tel Aviv
-  { lat: 30.04, lon: 31.23, size: 5 },  // Cairo
-  { lat: 33.57, lon: -7.58, size: 3 },  // Casablanca
-  { lat: 6.52, lon: 3.37, size: 4 },    // Lagos
-  { lat: -1.29, lon: 36.82, size: 3 },  // Nairobi
-  { lat: -26.20, lon: 28.04, size: 4 }, // Johannesburg
-  { lat: -33.92, lon: 18.42, size: 3 }, // Cape Town
-  // Asia
-  { lat: 28.61, lon: 77.20, size: 5 },  // Delhi
-  { lat: 19.07, lon: 72.87, size: 5 },  // Mumbai
-  { lat: 12.97, lon: 77.59, size: 4 },  // Bangalore
-  { lat: 13.08, lon: 80.27, size: 4 },  // Chennai
-  { lat: 22.57, lon: 88.36, size: 4 },  // Kolkata
-  { lat: 31.23, lon: 121.47, size: 5 }, // Shanghai
-  { lat: 39.90, lon: 116.40, size: 5 }, // Beijing
-  { lat: 23.12, lon: 113.26, size: 5 }, // Guangzhou
-  { lat: 22.54, lon: 114.05, size: 5 }, // Shenzhen
-  { lat: 22.31, lon: 114.16, size: 5 }, // Hong Kong
-  { lat: 25.03, lon: 121.56, size: 4 }, // Taipei
-  { lat: 35.67, lon: 139.65, size: 5 }, // Tokyo
-  { lat: 34.69, lon: 135.50, size: 5 }, // Osaka
-  { lat: 37.56, lon: 126.97, size: 5 }, // Seoul
-  { lat: 1.35, lon: 103.81, size: 5 },  // Singapore
-  { lat: 13.75, lon: 100.50, size: 4 }, // Bangkok
-  { lat: 3.13, lon: 101.68, size: 4 },  // Kuala Lumpur
-  { lat: -6.20, lon: 106.84, size: 5 }, // Jakarta
-  { lat: 14.59, lon: 120.98, size: 4 }, // Manila
-  // Oceania & South America
-  { lat: -33.86, lon: 151.20, size: 4 },// Sydney
-  { lat: -37.81, lon: 144.96, size: 4 },// Melbourne
-  { lat: -36.84, lon: 174.76, size: 3 },// Auckland
-  { lat: -23.55, lon: -46.63, size: 5 },// Sao Paulo
-  { lat: -22.90, lon: -43.17, size: 4 },// Rio de Janeiro
-  { lat: -34.60, lon: -58.38, size: 4 },// Buenos Aires
-  { lat: -33.44, lon: -70.66, size: 4 },// Santiago
-  { lat: -12.04, lon: -77.04, size: 4 },// Lima
-  { lat: 4.71, lon: -74.07, size: 4 },  // Bogota
-];
-
-// Coordinate transformation: Spherical (lat, lon) to 3D Cartesian
+/**
+ * Mathematically exact coordinate transformation matching Three.js standard
+ * SphereGeometry equirectangular UV mapping (u: [-180, 180] -> [0, 1], v: [90, -90] -> [1, 0]).
+ */
 function latLonToVector3(lat: number, lon: number, radius: number): THREE.Vector3 {
-  const phi = (lat * Math.PI) / 180;
-  const theta = (lon * Math.PI) / 180;
+  const phiRad = (90 - lat) * (Math.PI / 180);
+  const thetaRad = (lon + 180) * (Math.PI / 180);
 
-  const y = radius * Math.sin(phi);
-  const x = radius * Math.cos(phi) * Math.sin(theta);
-  const z = radius * Math.cos(phi) * Math.cos(theta);
+  const x = -radius * Math.sin(phiRad) * Math.cos(thetaRad);
+  const y = radius * Math.cos(phiRad);
+  const z = radius * Math.sin(phiRad) * Math.sin(thetaRad);
 
   return new THREE.Vector3(x, y, z);
 }
 
-// Generate high-visibility dark-mode cartography canvas texture
-function createHighContrastGlobeTexture(): {
-  colorMap: THREE.CanvasTexture;
-  emissiveMap: THREE.CanvasTexture;
-} {
-  const width = 2048;
-  const height = 1024;
-
-  // 1. Color Map Canvas
-  const colorCanvas = document.createElement('canvas');
-  colorCanvas.width = width;
-  colorCanvas.height = height;
-  const ctx = colorCanvas.getContext('2d')!;
-
-  // Deep Navy/Slate Ocean (#090e1a) with subtle bathymetric gradients
-  ctx.fillStyle = '#090e1a';
-  ctx.fillRect(0, 0, width, height);
-
-  // Subtle ocean grid lines (Graticules)
-  ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
-  ctx.lineWidth = 1;
-  for (let lon = -180; lon <= 180; lon += 30) {
-    const x = ((lon + 180) / 360) * width;
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
-    ctx.stroke();
-  }
-  for (let lat = -80; lat <= 80; lat += 20) {
-    const y = ((90 - lat) / 180) * height;
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(width, y);
-    ctx.stroke();
-  }
-
-  // Continents: Visible slate-cyan fill with luminous cyan/emerald coastlines
-  ctx.fillStyle = '#141e33';
-  ctx.strokeStyle = '#38bdf8';
-  ctx.lineWidth = 2.5;
-
-  CONTINENTS.forEach((poly) => {
-    if (poly.length < 2) return;
-    ctx.beginPath();
-    const firstX = ((poly[0][0] + 180) / 360) * width;
-    const firstY = ((90 - poly[0][1]) / 180) * height;
-    ctx.moveTo(firstX, firstY);
-    for (let i = 1; i < poly.length; i++) {
-      const px = ((poly[i][0] + 180) / 360) * width;
-      const py = ((90 - poly[i][1]) / 180) * height;
-      ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  });
-
-  // Secondary inner land shading for depth
-  ctx.strokeStyle = 'rgba(148, 163, 184, 0.25)';
-  ctx.lineWidth = 1.2;
-  CONTINENTS.forEach((poly) => {
-    if (poly.length < 2) return;
-    ctx.beginPath();
-    const firstX = ((poly[0][0] + 180) / 360) * width;
-    const firstY = ((90 - poly[0][1]) / 180) * height;
-    ctx.moveTo(firstX, firstY);
-    for (let i = 1; i < poly.length; i++) {
-      const px = ((poly[i][0] + 180) / 360) * width;
-      const py = ((90 - poly[i][1]) / 180) * height;
-      ctx.lineTo(px, py);
-    }
-    ctx.closePath();
-    ctx.stroke();
-  });
-
-  // 2. Emissive Night Lights Map Canvas
-  const emissiveCanvas = document.createElement('canvas');
-  emissiveCanvas.width = width;
-  emissiveCanvas.height = height;
-  const eCtx = emissiveCanvas.getContext('2d')!;
-
-  eCtx.fillStyle = '#000000';
-  eCtx.fillRect(0, 0, width, height);
-
-  // Paint realistic pin-point star-like NASA city night clusters
-  GLOBAL_CITIES.forEach((city) => {
-    const cx = ((city.lon + 180) / 360) * width;
-    const cy = ((90 - city.lat) / 180) * height;
-
-    // Soft city glow aura
-    const rad = city.size * 2.2;
-    const grad = eCtx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-    grad.addColorStop(0, '#fef08a');
-    grad.addColorStop(0.3, '#f59e0b');
-    grad.addColorStop(0.7, 'rgba(245, 158, 11, 0.3)');
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-    eCtx.fillStyle = grad;
-    eCtx.beginPath();
-    eCtx.arc(cx, cy, rad, 0, Math.PI * 2);
-    eCtx.fill();
-
-    // Central bright pinpoint core
-    eCtx.fillStyle = '#ffffff';
-    eCtx.beginPath();
-    eCtx.arc(cx, cy, 1.2, 0, Math.PI * 2);
-    eCtx.fill();
-
-    // Dense suburban micro-nodes around major metro centers
-    const microCount = city.size >= 5 ? 12 : 6;
-    for (let i = 0; i < microCount; i++) {
-      const angle = (i / microCount) * Math.PI * 2 + Math.sin(i);
-      const dist = (0.5 + 0.5 * Math.sin(i * 3)) * rad * 0.9;
-      const mx = cx + Math.cos(angle) * dist;
-      const my = cy + Math.sin(angle) * dist;
-      eCtx.fillStyle = i % 2 === 0 ? '#fbbf24' : '#fef08a';
-      eCtx.beginPath();
-      eCtx.arc(mx, my, 0.9, 0, Math.PI * 2);
-      eCtx.fill();
-    }
-  });
-
-  const colorMap = new THREE.CanvasTexture(colorCanvas);
-  const emissiveMap = new THREE.CanvasTexture(emissiveCanvas);
-
-  colorMap.colorSpace = THREE.SRGBColorSpace;
-  emissiveMap.colorSpace = THREE.SRGBColorSpace;
-
-  return { colorMap, emissiveMap };
-}
-
-// Sleek low-poly modern airliner mesh
+// Sleek low-poly modern airliner mesh scaled to proportional aviation size
 function createAircraftMesh(): THREE.Group {
   const group = new THREE.Group();
 
   const metalMat = new THREE.MeshStandardMaterial({
     color: 0xf8fafc,
-    metalness: 0.9,
+    metalness: 0.92,
     roughness: 0.15,
   });
 
   const wingMat = new THREE.MeshStandardMaterial({
     color: 0xe2e8f0,
-    metalness: 0.8,
+    metalness: 0.85,
     roughness: 0.25,
   });
 
-  const glassMat = new THREE.MeshBasicMaterial({
+  const cockpitMat = new THREE.MeshBasicMaterial({
     color: 0x38bdf8,
   });
 
-  // Fuselage Body
-  const bodyGeo = new THREE.CylinderGeometry(1.4, 1.1, 18, 16);
+  // Fuselage Body (Length = 5.2, oriented along +Z)
+  const bodyGeo = new THREE.CylinderGeometry(0.42, 0.32, 4.2, 16);
   bodyGeo.rotateX(Math.PI / 2);
   const body = new THREE.Mesh(bodyGeo, metalMat);
   group.add(body);
 
-  // Aerodynamic Nose
-  const noseGeo = new THREE.ConeGeometry(1.4, 5, 16);
+  // Aerodynamic Nose Cone (Facing +Z)
+  const noseGeo = new THREE.ConeGeometry(0.42, 1.4, 16);
   noseGeo.rotateX(Math.PI / 2);
   const nose = new THREE.Mesh(noseGeo, metalMat);
-  nose.position.z = 11.5;
+  nose.position.z = 2.8;
   group.add(nose);
 
-  // Cockpit Glass
-  const cockpitGeo = new THREE.BoxGeometry(1.8, 0.9, 2.5);
-  const cockpit = new THREE.Mesh(cockpitGeo, glassMat);
-  cockpit.position.set(0, 0.9, 8.5);
+  // Cockpit Glass Window Visor
+  const cockpitGeo = new THREE.BoxGeometry(0.55, 0.25, 0.7);
+  const cockpit = new THREE.Mesh(cockpitGeo, cockpitMat);
+  cockpit.position.set(0, 0.28, 2.0);
   group.add(cockpit);
 
-  // Swept Wings
+  // Swept Wings (Wingspan = 5.6, swept back along -Z)
   const wingShape = new THREE.Shape();
-  wingShape.moveTo(0, 2);
-  wingShape.lineTo(16, -7);
-  wingShape.lineTo(15, -9);
-  wingShape.lineTo(0, -4);
-  wingShape.lineTo(-15, -9);
-  wingShape.lineTo(-16, -7);
+  wingShape.moveTo(0, 0.6);
+  wingShape.lineTo(2.8, -1.4);
+  wingShape.lineTo(2.6, -1.8);
+  wingShape.lineTo(0, -0.7);
+  wingShape.lineTo(-2.6, -1.8);
+  wingShape.lineTo(-2.8, -1.4);
   wingShape.closePath();
 
-  const wingGeo = new THREE.ExtrudeGeometry(wingShape, { depth: 0.4, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1 });
+  const wingGeo = new THREE.ExtrudeGeometry(wingShape, { depth: 0.1, bevelEnabled: false });
   wingGeo.rotateX(Math.PI / 2);
   const wings = new THREE.Mesh(wingGeo, wingMat);
-  wings.position.set(0, 0, 1);
+  wings.position.set(0, 0, 0.2);
   group.add(wings);
 
-  // Twin Turbofan Engines
-  const engineGeo = new THREE.CylinderGeometry(0.7, 0.6, 4, 12);
+  // Twin Turbofan Engines under wings
+  const engineGeo = new THREE.CylinderGeometry(0.2, 0.17, 1.1, 10);
   engineGeo.rotateX(Math.PI / 2);
   const enginePort = new THREE.Mesh(engineGeo, metalMat);
-  enginePort.position.set(-6, -1, 0);
+  enginePort.position.set(-1.1, -0.28, 0.0);
   group.add(enginePort);
 
   const engineStar = new THREE.Mesh(engineGeo, metalMat);
-  engineStar.position.set(6, -1, 0);
+  engineStar.position.set(1.1, -0.28, 0.0);
   group.add(engineStar);
 
-  // Tail Vertical Stabilizer
+  // Vertical Tail Stabilizer
   const tailShape = new THREE.Shape();
   tailShape.moveTo(0, 0);
-  tailShape.lineTo(0, 6);
-  tailShape.lineTo(3, 6);
-  tailShape.lineTo(5, 0);
+  tailShape.lineTo(0, 1.3);
+  tailShape.lineTo(0.65, 1.3);
+  tailShape.lineTo(1.1, 0);
   tailShape.closePath();
 
-  const tailGeo = new THREE.ExtrudeGeometry(tailShape, { depth: 0.25, bevelEnabled: false });
+  const tailGeo = new THREE.ExtrudeGeometry(tailShape, { depth: 0.08, bevelEnabled: false });
   tailGeo.rotateY(Math.PI / 2);
   const tail = new THREE.Mesh(tailGeo, metalMat);
-  tail.position.set(0.12, 0.8, -8.5);
+  tail.position.set(0.04, 0.22, -2.0);
   group.add(tail);
 
-  // Red & Green Navigation Wingtip Lights
+  // Horizontal Tail Stabilizers
+  const hTailShape = new THREE.Shape();
+  hTailShape.moveTo(0, 0.2);
+  hTailShape.lineTo(1.2, -0.5);
+  hTailShape.lineTo(1.0, -0.7);
+  hTailShape.lineTo(0, -0.3);
+  hTailShape.lineTo(-1.0, -0.7);
+  hTailShape.lineTo(-1.2, -0.5);
+  hTailShape.closePath();
+
+  const hTailGeo = new THREE.ExtrudeGeometry(hTailShape, { depth: 0.06, bevelEnabled: false });
+  hTailGeo.rotateX(Math.PI / 2);
+  const hTail = new THREE.Mesh(hTailGeo, metalMat);
+  hTail.position.set(0, 0.3, -1.9);
+  group.add(hTail);
+
+  // Standard Aviation Navigation Wingtip Lights
+  // Port = Red, Starboard = Green
   const portNav = new THREE.Mesh(
-    new THREE.SphereGeometry(0.4, 8, 8),
+    new THREE.SphereGeometry(0.12, 8, 8),
     new THREE.MeshBasicMaterial({ color: 0xef4444 })
   );
-  portNav.position.set(-15.5, 0, -8);
+  portNav.position.set(-2.75, 0, -1.5);
   group.add(portNav);
 
   const starNav = new THREE.Mesh(
-    new THREE.SphereGeometry(0.4, 8, 8),
+    new THREE.SphereGeometry(0.12, 8, 8),
     new THREE.MeshBasicMaterial({ color: 0x22c55e })
   );
-  starNav.position.set(15.5, 0, -8);
+  starNav.position.set(2.75, 0, -1.5);
   group.add(starNav);
 
-  group.scale.set(0.35, 0.35, 0.35);
   return group;
 }
 
@@ -356,40 +163,65 @@ export default function ThreeGlobeView({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const sunLightRef = useRef<THREE.DirectionalLight | null>(null);
-  const sunMarkerRef = useRef<THREE.Mesh | null>(null);
   const aircraftMeshRef = useRef<THREE.Group | null>(null);
   const sunRayLineRef = useRef<THREE.Line | null>(null);
   const pathTubeRef = useRef<THREE.Mesh | null>(null);
   const depBeaconRef = useRef<THREE.Group | null>(null);
   const arrBeaconRef = useRef<THREE.Group | null>(null);
+  const subsolarOrbRef = useRef<THREE.Mesh | null>(null);
 
-  // Helper: Create 3D Airport Beacon Pin + Pulsing Rings
+  // Earth shader uniforms reference
+  const earthUniformsRef = useRef<{
+    uDayTexture: { value: THREE.Texture | null };
+    uNightTexture: { value: THREE.Texture | null };
+    uSunDirection: { value: THREE.Vector3 };
+  }>({
+    uDayTexture: { value: null },
+    uNightTexture: { value: null },
+    uSunDirection: { value: new THREE.Vector3(1, 0, 0) },
+  });
+
+  const atmosphereUniformsRef = useRef<{
+    uSunDirection: { value: THREE.Vector3 };
+    uViewMatrix: { value: THREE.Matrix4 };
+  }>({
+    uSunDirection: { value: new THREE.Vector3(1, 0, 0) },
+    uViewMatrix: { value: new THREE.Matrix4() },
+  });
+
+  // Helper: Create 3D Airport Beacon Pin + Concentric Pulsing Rings
   const createBeaconGroup = (colorHex: number): THREE.Group => {
     const group = new THREE.Group();
 
-    // Concentric pulsing rings
-    const ringGeo1 = new THREE.RingGeometry(1.8, 3.2, 32);
+    // Inner ground ring
+    const ringGeo1 = new THREE.RingGeometry(0.8, 1.4, 32);
     ringGeo1.rotateX(-Math.PI / 2);
     const ringMat1 = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide });
     const ring1 = new THREE.Mesh(ringGeo1, ringMat1);
     group.add(ring1);
 
-    const ringGeo2 = new THREE.RingGeometry(4.0, 5.2, 32);
+    // Outer radar pulsing ring
+    const ringGeo2 = new THREE.RingGeometry(1.8, 2.5, 32);
     ringGeo2.rotateX(-Math.PI / 2);
-    const ringMat2 = new THREE.MeshBasicMaterial({ color: colorHex, side: THREE.DoubleSide, transparent: true, opacity: 0.5 });
+    const ringMat2 = new THREE.MeshBasicMaterial({
+      color: colorHex,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.65,
+    });
     const ring2 = new THREE.Mesh(ringGeo2, ringMat2);
     group.add(ring2);
 
     // Vertical beacon pin
-    const pinGeo = new THREE.CylinderGeometry(0.4, 0.2, 8, 8);
-    pinGeo.translate(0, 4, 0);
+    const pinGeo = new THREE.CylinderGeometry(0.18, 0.08, 3.2, 8);
+    pinGeo.translate(0, 1.6, 0);
     const pinMat = new THREE.MeshBasicMaterial({ color: colorHex });
     const pin = new THREE.Mesh(pinGeo, pinMat);
     group.add(pin);
 
-    // Glowing head sphere
-    const headGeo = new THREE.SphereGeometry(1.2, 12, 12);
-    headGeo.translate(0, 8, 0);
+    // Beacon head glowing orb
+    const headGeo = new THREE.SphereGeometry(0.7, 12, 12);
+    headGeo.translate(0, 3.2, 0);
     const head = new THREE.Mesh(headGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
     group.add(head);
 
@@ -406,7 +238,7 @@ export default function ThreeGlobeView({
 
     // 1. Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x060913); // Deep space background
+    scene.background = new THREE.Color(0x04060d);
     sceneRef.current = scene;
 
     // 2. Camera
@@ -418,7 +250,7 @@ export default function ThreeGlobeView({
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.35;
+    renderer.toneMappingExposure = 1.15;
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
@@ -427,50 +259,120 @@ export default function ThreeGlobeView({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
-    controls.minDistance = 115;
-    controls.maxDistance = 550;
+    controls.minDistance = 110;
+    controls.maxDistance = 500;
     controls.rotateSpeed = 0.8;
     controls.zoomSpeed = 1.0;
     controlsRef.current = controls;
 
-    // 5. Hemisphere & Ambient Lighting for 100% Legibility
-    // Sky light provides gentle azure illumination so night side continents are clearly visible!
-    const hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x0f172a, 0.85);
-    scene.add(hemiLight);
+    // 5. Orbital Starfield (1,200 stars for depth)
+    const starsGeo = new THREE.BufferGeometry();
+    const starCount = 1200;
+    const starPositions = new Float32Array(starCount * 3);
+    const starColors = new Float32Array(starCount * 3);
 
-    const ambientLight = new THREE.AmbientLight(0x1e293b, 0.4);
-    scene.add(ambientLight);
+    for (let i = 0; i < starCount; i++) {
+      const r = 900 + Math.random() * 500;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      starPositions[i * 3 + 1] = r * Math.cos(phi);
+      starPositions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
 
-    // 6. Real-Time Directional Solar Light (Daylight side)
-    const sunLight = new THREE.DirectionalLight(0xfff7ed, 2.8);
-    sunLight.position.set(200, 50, 200);
-    scene.add(sunLight);
-    sunLightRef.current = sunLight;
-
-    // Subsolar 3D Sun Orb Marker
-    const sunMarkerGeo = new THREE.SphereGeometry(3.5, 16, 16);
-    const sunMarkerMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
-    const sunMarker = new THREE.Mesh(sunMarkerGeo, sunMarkerMat);
-    scene.add(sunMarker);
-    sunMarkerRef.current = sunMarker;
-
-    // 7. Globe Sphere Geometry & High-Contrast Textures
-    const { colorMap, emissiveMap } = createHighContrastGlobeTexture();
-    const globeGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64);
-    const globeMat = new THREE.MeshStandardMaterial({
-      map: colorMap,
-      roughness: 0.65,
-      metalness: 0.15,
-      emissiveMap: emissiveMap,
-      emissive: new THREE.Color(0xffffff),
-      emissiveIntensity: 0.85,
+      const tint = Math.random();
+      if (tint > 0.8) {
+        starColors[i * 3] = 0.98; starColors[i * 3 + 1] = 0.85; starColors[i * 3 + 2] = 0.7;
+      } else if (tint > 0.6) {
+        starColors[i * 3] = 0.75; starColors[i * 3 + 1] = 0.88; starColors[i * 3 + 2] = 1.0;
+      } else {
+        starColors[i * 3] = 0.92; starColors[i * 3 + 1] = 0.92; starColors[i * 3 + 2] = 0.95;
+      }
+    }
+    starsGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    starsGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+    const starsMat = new THREE.PointsMaterial({
+      size: 1.4,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.75,
     });
-    const globeMesh = new THREE.Mesh(globeGeo, globeMat);
+    const starField = new THREE.Points(starsGeo, starsMat);
+    scene.add(starField);
+
+    // 6. NASA Photorealistic Earth with Custom Day/Night/Terminator Shader
+    const textureLoader = new THREE.TextureLoader();
+    const dayTexture = textureLoader.load('/earth-blue-marble.jpg');
+    const nightTexture = textureLoader.load('/earth-night.jpg');
+
+    dayTexture.colorSpace = THREE.SRGBColorSpace;
+    nightTexture.colorSpace = THREE.SRGBColorSpace;
+
+    earthUniformsRef.current.uDayTexture.value = dayTexture;
+    earthUniformsRef.current.uNightTexture.value = nightTexture;
+
+    // Earth Custom Shader Material
+    const earthMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uDayTexture: earthUniformsRef.current.uDayTexture,
+        uNightTexture: earthUniformsRef.current.uNightTexture,
+        uSunDirection: earthUniformsRef.current.uSunDirection,
+      },
+      vertexShader: `
+        varying vec3 vWorldNormal;
+        varying vec2 vUv;
+        void main() {
+          vUv = uv;
+          vWorldNormal = normalize((modelMatrix * vec4(position, 1.0)).xyz);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D uDayTexture;
+        uniform sampler2D uNightTexture;
+        uniform vec3 uSunDirection;
+
+        varying vec3 vWorldNormal;
+        varying vec2 vUv;
+
+        void main() {
+          vec3 n = normalize(vWorldNormal);
+          vec3 s = normalize(uSunDirection);
+          float sunDot = dot(n, s);
+
+          // Day factor: smooth twilight transition across terminator (-0.12 to +0.12)
+          float dayFactor = smoothstep(-0.12, 0.12, sunDot);
+
+          vec4 daySample = texture2D(uDayTexture, vUv);
+          vec4 nightSample = texture2D(uNightTexture, vUv);
+
+          // Sunlit day side: realistic solar lighting with ambient fill
+          float diffuse = max(0.14, sunDot);
+          vec3 dayColor = daySample.rgb * (diffuse * 1.25 + 0.12);
+
+          // Golden hour / twilight penumbra amber rim along terminator
+          float twilight = smoothstep(-0.15, 0.05, sunDot) * smoothstep(0.20, 0.05, sunDot);
+          vec3 goldenRim = vec3(1.0, 0.58, 0.18) * twilight * 0.45;
+
+          // Night side: luminous city lights against dark ocean
+          vec3 nightColor = nightSample.rgb * 1.65;
+
+          vec3 finalColor = mix(nightColor, dayColor + goldenRim, dayFactor);
+          gl_FragColor = vec4(finalColor, 1.0);
+        }
+      `,
+    });
+
+    const globeGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 64, 64);
+    const globeMesh = new THREE.Mesh(globeGeo, earthMat);
     scene.add(globeMesh);
 
-    // Subtle Horizon Atmosphere Rim Fresnel (Inside globe layer)
-    const atmosphereGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.015, 64, 64);
+    // 7. Atmospheric Scattering Rim Glow (Fresnel Shader)
+    const atmosphereGeo = new THREE.SphereGeometry(GLOBE_RADIUS * 1.016, 64, 64);
     const atmosphereMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uSunDirection: atmosphereUniformsRef.current.uSunDirection,
+        uViewMatrix: atmosphereUniformsRef.current.uViewMatrix,
+      },
       vertexShader: `
         varying vec3 vNormal;
         varying vec3 vPosition;
@@ -483,10 +385,21 @@ export default function ThreeGlobeView({
       fragmentShader: `
         varying vec3 vNormal;
         varying vec3 vPosition;
+        uniform vec3 uSunDirection;
+        uniform mat4 uViewMatrix;
+
         void main() {
           vec3 viewDir = normalize(-vPosition);
           float fresnel = pow(1.0 - max(0.0, dot(vNormal, viewDir)), 2.8);
-          gl_FragColor = vec4(0.22, 0.74, 0.97, fresnel * 0.45); // Subtle cyan #38bdf8 haze
+
+          vec3 sunView = normalize((uViewMatrix * vec4(uSunDirection, 0.0)).xyz);
+          float sunFacing = max(0.0, dot(vNormal, sunView));
+
+          vec3 dayRim = vec3(0.22, 0.74, 0.97) * 0.85; // Cyan #38bdf8
+          vec3 nightRim = vec3(0.12, 0.16, 0.38) * 0.35; // Deep indigo
+          vec3 rimColor = mix(nightRim, dayRim, smoothstep(0.0, 0.45, sunFacing));
+
+          gl_FragColor = vec4(rimColor, fresnel * 0.65);
         }
       `,
       blending: THREE.AdditiveBlending,
@@ -497,7 +410,7 @@ export default function ThreeGlobeView({
     const atmosphereMesh = new THREE.Mesh(atmosphereGeo, atmosphereMat);
     scene.add(atmosphereMesh);
 
-    // 8. Departure (JFK: Amber) & Arrival (LHR: Emerald) Beacons
+    // 8. Airport Beacons (JFK: Amber, LHR: Emerald)
     const depBeacon = createBeaconGroup(0xf59e0b);
     scene.add(depBeacon);
     depBeaconRef.current = depBeacon;
@@ -506,20 +419,27 @@ export default function ThreeGlobeView({
     scene.add(arrBeacon);
     arrBeaconRef.current = arrBeacon;
 
-    // 9. 3D Aircraft Model
+    // 9. Zenith Subsolar Indicator Orb on Earth surface
+    const subsolarGeo = new THREE.SphereGeometry(1.6, 16, 16);
+    const subsolarMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+    const subsolarOrb = new THREE.Mesh(subsolarGeo, subsolarMat);
+    scene.add(subsolarOrb);
+    subsolarOrbRef.current = subsolarOrb;
+
+    // 10. 3D Modern Airliner Model
     const aircraft = createAircraftMesh();
     scene.add(aircraft);
     aircraftMeshRef.current = aircraft;
 
-    // 10. Dynamic Sun Vector Ray
+    // 11. Dynamic Sun Vector Ray
     const rayGeo = new THREE.BufferGeometry().setFromPoints([
       new THREE.Vector3(0, 0, 0),
-      new THREE.Vector3(0, 50, 0),
+      new THREE.Vector3(0, 16, 0),
     ]);
     const rayMat = new THREE.LineDashedMaterial({
       color: 0xfbbf24,
-      dashSize: 2.5,
-      gapSize: 1.5,
+      dashSize: 1.5,
+      gapSize: 0.8,
       linewidth: 2,
     });
     const sunRay = new THREE.Line(rayGeo, rayMat);
@@ -527,7 +447,15 @@ export default function ThreeGlobeView({
     scene.add(sunRay);
     sunRayLineRef.current = sunRay;
 
-    // 11. Animation Loop
+    // 12. Directional Solar Light (for aircraft shading)
+    const sunLight = new THREE.DirectionalLight(0xfff7ed, 2.5);
+    scene.add(sunLight);
+    sunLightRef.current = sunLight;
+
+    const ambientLight = new THREE.AmbientLight(0x334155, 0.7);
+    scene.add(ambientLight);
+
+    // 13. Animation Loop
     let animationFrameId: number;
     const clock = new THREE.Clock();
 
@@ -535,10 +463,13 @@ export default function ThreeGlobeView({
       animationFrameId = requestAnimationFrame(animate);
       const elapsedTime = clock.getElapsedTime();
 
-      // Beacon ring pulses
-      const scale = 1.0 + 0.25 * Math.sin(elapsedTime * 4.5);
-      if (depBeaconRef.current) depBeaconRef.current.children[1].scale.set(scale, scale, scale);
-      if (arrBeaconRef.current) arrBeaconRef.current.children[1].scale.set(scale, scale, scale);
+      // Pulsing beacon radar rings
+      const pulseScale = 1.0 + 0.22 * Math.sin(elapsedTime * 4.0);
+      if (depBeaconRef.current) depBeaconRef.current.children[1].scale.set(pulseScale, pulseScale, pulseScale);
+      if (arrBeaconRef.current) arrBeaconRef.current.children[1].scale.set(pulseScale, pulseScale, pulseScale);
+
+      // Keep atmosphere viewMatrix in sync
+      atmosphereUniformsRef.current.uViewMatrix.value.copy(camera.matrixWorldInverse);
 
       controls.update();
       renderer.render(scene, camera);
@@ -546,13 +477,14 @@ export default function ThreeGlobeView({
 
     animate();
 
-    // 12. Auto-frame full route on initial mount
+    // 14. Auto-frame full route on initial mount
     const depPos = latLonToVector3(departure.latitude, departure.longitude, GLOBE_RADIUS);
     const arrPos = latLonToVector3(arrival.latitude, arrival.longitude, GLOBE_RADIUS);
-    const midPos = depPos.clone().add(arrPos).multiplyScalar(0.5).normalize().multiplyScalar(GLOBE_RADIUS * 2.2);
+    const midPos = depPos.clone().add(arrPos).multiplyScalar(0.5);
+    const camPos = midPos.clone().normalize().multiplyScalar(GLOBE_RADIUS * 2.15);
 
-    camera.position.set(midPos.x, midPos.y + 40, midPos.z);
-    controls.target.set(0, 0, 0);
+    camera.position.set(camPos.x, camPos.y + 35, camPos.z);
+    controls.target.set(midPos.x * 0.2, midPos.y * 0.2, midPos.z * 0.2);
     controls.update();
 
     // Window Resize Handler
@@ -572,8 +504,12 @@ export default function ThreeGlobeView({
       cancelAnimationFrame(animationFrameId);
       controls.dispose();
       renderer.dispose();
-      colorMap.dispose();
-      emissiveMap.dispose();
+      dayTexture.dispose();
+      nightTexture.dispose();
+      earthMat.dispose();
+      atmosphereMat.dispose();
+      globeGeo.dispose();
+      atmosphereGeo.dispose();
       if (container && renderer.domElement) {
         container.removeChild(renderer.domElement);
       }
@@ -590,19 +526,19 @@ export default function ThreeGlobeView({
       pathTubeRef.current.geometry.dispose();
     }
 
-    // Build elevated 3D Catmull-Rom curve points
+    // Build elevated 3D Catmull-Rom curve points along true Great Circle route
     const curvePoints: THREE.Vector3[] = [];
 
     flightPath.forEach((pt, idx) => {
       const progress = idx / (flightPath.length - 1);
-      // Clear visible altitude arch above globe surface (peaks at 1.08 radius)
-      const altOffset = 1.0 + 0.065 * Math.sin(progress * Math.PI);
+      // Realistic flight altitude: subtle elevation hovering just above Earth surface
+      const altOffset = 1.008 + 0.018 * Math.sin(progress * Math.PI);
       const pos = latLonToVector3(pt.location.lat, pt.location.lon, GLOBE_RADIUS * altOffset);
       curvePoints.push(pos);
     });
 
     const curve = new THREE.CatmullRomCurve3(curvePoints);
-    const tubeGeo = new THREE.TubeGeometry(curve, flightPath.length * 3, 1.2, 12, false);
+    const tubeGeo = new THREE.TubeGeometry(curve, flightPath.length * 4, 0.45, 8, false);
 
     const tubeMat = new THREE.MeshBasicMaterial({
       color: 0x38bdf8,
@@ -613,7 +549,7 @@ export default function ThreeGlobeView({
     scene.add(tubeMesh);
     pathTubeRef.current = tubeMesh;
 
-    // Update Departure & Arrival Beacons
+    // Position Departure & Arrival Beacons exactly at airport coordinates
     if (depBeaconRef.current) {
       const depPos = latLonToVector3(departure.latitude, departure.longitude, GLOBE_RADIUS * 1.002);
       depBeaconRef.current.position.copy(depPos);
@@ -627,19 +563,24 @@ export default function ThreeGlobeView({
     }
   }, [flightPath, departure, arrival]);
 
-  // Update Directional Solar Lighting corresponding to subsolar point at currentTime
+  // Update Solar Position, Sun Light, and Subsolar Zenith Point
   useEffect(() => {
-    if (!sunLightRef.current) return;
-
     const subsolar = getSubsolarPoint(currentTime);
-    const sunDistance = 320;
-    const sunPos = latLonToVector3(subsolar.lat, subsolar.lon, sunDistance);
+    const sunUnitPos = latLonToVector3(subsolar.lat, subsolar.lon, 1.0).normalize();
 
-    sunLightRef.current.position.copy(sunPos);
+    // Update shaders
+    earthUniformsRef.current.uSunDirection.value.copy(sunUnitPos);
+    atmosphereUniformsRef.current.uSunDirection.value.copy(sunUnitPos);
 
-    if (sunMarkerRef.current) {
-      const orbPos = latLonToVector3(subsolar.lat, subsolar.lon, GLOBE_RADIUS * 1.04);
-      sunMarkerRef.current.position.copy(orbPos);
+    // Directional light position
+    if (sunLightRef.current) {
+      sunLightRef.current.position.copy(sunUnitPos.clone().multiplyScalar(300));
+    }
+
+    // Update Zenith Subsolar Orb position
+    if (subsolarOrbRef.current) {
+      const subsolarSurfacePos = latLonToVector3(subsolar.lat, subsolar.lon, GLOBE_RADIUS * 1.004);
+      subsolarOrbRef.current.position.copy(subsolarSurfacePos);
     }
   }, [currentTime]);
 
@@ -649,37 +590,58 @@ export default function ThreeGlobeView({
 
     const currentPt = currentWaypoint || flightPath[0];
     const currentIndex = flightPath.findIndex((p) => p === currentPt);
-    const progress = Math.max(0, currentIndex / (flightPath.length - 1));
-    const altOffset = 1.0 + 0.065 * Math.sin(progress * Math.PI);
+    const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+    const progress = Math.max(0, safeIndex / (flightPath.length - 1));
+    const altOffset = 1.008 + 0.018 * Math.sin(progress * Math.PI);
 
     const currentPos = latLonToVector3(currentPt.location.lat, currentPt.location.lon, GLOBE_RADIUS * altOffset);
     aircraftMeshRef.current.position.copy(currentPos);
 
-    // Calculate forward flight direction
-    const nextPt = flightPath[Math.min(flightPath.length - 1, (currentIndex >= 0 ? currentIndex : 0) + 1)];
+    // Calculate forward flight direction along Great Circle arc
+    const nextPt = flightPath[Math.min(flightPath.length - 1, safeIndex + 1)];
     const nextPos = latLonToVector3(nextPt.location.lat, nextPt.location.lon, GLOBE_RADIUS * altOffset);
 
-    const forwardDir = nextPos.clone().sub(currentPos).normalize();
-    const upDir = currentPos.clone().normalize(); // Normal from Earth center
+    // Local Up: outward radial normal from Earth center
+    const upDir = currentPos.clone().normalize();
+
+    // Raw forward vector to next waypoint
+    let forwardDir = nextPos.clone().sub(currentPos);
+    if (forwardDir.lengthSq() < 0.0001 && safeIndex > 0) {
+      const prevPt = flightPath[safeIndex - 1];
+      const prevPos = latLonToVector3(prevPt.location.lat, prevPt.location.lon, GLOBE_RADIUS * altOffset);
+      forwardDir = currentPos.clone().sub(prevPos);
+    }
+
+    // Project forwardDir onto tangent plane perpendicular to upDir
+    forwardDir = forwardDir.sub(upDir.clone().multiplyScalar(forwardDir.dot(upDir))).normalize();
 
     if (forwardDir.lengthSq() > 0.0001) {
-      const matrix = new THREE.Matrix4();
-      const rightDir = new THREE.Vector3().crossVectors(forwardDir, upDir).normalize();
-      const trueUp = new THREE.Vector3().crossVectors(rightDir, forwardDir).normalize();
-      matrix.makeBasis(rightDir, trueUp, forwardDir);
-      aircraftMeshRef.current.quaternion.setFromRotationMatrix(matrix);
+      // Orthonormal basis: rightDir = upDir x forwardDir (right hand rule)
+      const rightDir = new THREE.Vector3().crossVectors(upDir, forwardDir).normalize();
+      const trueUp = new THREE.Vector3().crossVectors(forwardDir, rightDir).normalize();
+
+      // Aircraft mesh is built with +X = Starboard, +Y = Cockpit Roof, +Z = Nose Cone
+      const rotMatrix = new THREE.Matrix4().makeBasis(rightDir, trueUp, forwardDir);
+      aircraftMeshRef.current.quaternion.setFromRotationMatrix(rotMatrix);
     }
 
     // Dynamic Sun Vector Ray
     if (sunRayLineRef.current && sunLightRef.current) {
-      const sunDir = sunLightRef.current.position.clone().sub(currentPos).normalize();
-      const sunTarget = currentPos.clone().add(sunDir.multiplyScalar(45));
-      const positions = new Float32Array([
-        currentPos.x, currentPos.y, currentPos.z,
-        sunTarget.x, sunTarget.y, sunTarget.z,
-      ]);
-      sunRayLineRef.current.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      sunRayLineRef.current.computeLineDistances();
+      const isDaylight = currentPt.sunPosition.elevation > 0;
+      if (isDaylight) {
+        sunRayLineRef.current.visible = true;
+        const sunDir = sunLightRef.current.position.clone().sub(currentPos).normalize();
+        const sunTarget = currentPos.clone().add(sunDir.multiplyScalar(15));
+        const positions = new Float32Array([
+          currentPos.x, currentPos.y, currentPos.z,
+          sunTarget.x, sunTarget.y, sunTarget.z,
+        ]);
+        sunRayLineRef.current.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        sunRayLineRef.current.computeLineDistances();
+      } else {
+        // Sun below horizon -> hide sun vector ray
+        sunRayLineRef.current.visible = false;
+      }
     }
 
     // Auto-track camera smoothly follows aircraft
@@ -696,10 +658,11 @@ export default function ThreeGlobeView({
     if (!cameraRef.current || !controlsRef.current || !flightPath.length) return;
     const depPos = latLonToVector3(departure.latitude, departure.longitude, GLOBE_RADIUS);
     const arrPos = latLonToVector3(arrival.latitude, arrival.longitude, GLOBE_RADIUS);
-    const midPos = depPos.clone().add(arrPos).multiplyScalar(0.5).normalize().multiplyScalar(GLOBE_RADIUS * 2.2);
+    const midPos = depPos.clone().add(arrPos).multiplyScalar(0.5);
+    const camPos = midPos.clone().normalize().multiplyScalar(GLOBE_RADIUS * 2.15);
 
-    cameraRef.current.position.set(midPos.x, midPos.y + 40, midPos.z);
-    controlsRef.current.target.set(0, 0, 0);
+    cameraRef.current.position.set(camPos.x, camPos.y + 35, camPos.z);
+    controlsRef.current.target.set(midPos.x * 0.2, midPos.y * 0.2, midPos.z * 0.2);
     controlsRef.current.update();
     setIsAutoTrack(false);
   }, [flightPath, departure, arrival]);
@@ -714,7 +677,7 @@ export default function ThreeGlobeView({
             3D EARTH GLOBE HUD [THREE.JS]
           </span>
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-[var(--cabin-cyan)] font-mono-numbers font-medium">
-            HIGH CONTRAST CARTOGRAPHY
+            NASA SATELLITE CARTOGRAPHY
           </span>
         </div>
 
@@ -746,7 +709,7 @@ export default function ThreeGlobeView({
       {/* Three.js Canvas Container */}
       <div
         ref={containerRef}
-        className="w-full h-[360px] sm:h-[440px] lg:h-[480px] relative cursor-grab active:cursor-grabbing bg-[#060913]"
+        className="w-full h-[360px] sm:h-[440px] lg:h-[480px] relative cursor-grab active:cursor-grabbing bg-[#04060d]"
       />
 
       {/* Floating HUD Overlays */}

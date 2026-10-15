@@ -29,7 +29,7 @@ const ThreeGlobeView = dynamic(() => import('./ThreeGlobeView'), {
 function getInitialFlight(): FlightDetails {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(8, 30, 0, 0); // 08:30 morning departure
+  tomorrow.setUTCHours(14, 0, 0, 0); // 14:00 UTC = 10:00 AM EDT New York departure (Sun high in sky!)
 
   return {
     departure: 'JFK',
@@ -101,10 +101,15 @@ export default function FlightSunTracker() {
 
   // Quick Select Route Handler
   const handleSelectRoute = useCallback((dep: string, arr: string, durationMin?: number) => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setUTCHours(14, 0, 0, 0);
+
     setFlightDetails((prev) => ({
       ...prev,
       departure: dep,
       arrival: arr,
+      departureTime: tomorrow,
       durationMinutes: durationMin || prev.durationMinutes,
     }));
   }, []);
