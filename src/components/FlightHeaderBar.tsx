@@ -21,6 +21,15 @@ export const POPULAR_ROUTES: PopularRoute[] = [
   { dep: 'DEL', arr: 'LHR', depName: 'Delhi', arrName: 'London', durationMinutes: 560 },
 ];
 
+export type VisualEngineMode =
+  | 'three-animated'
+  | 'three-satellite'
+  | 'three-tactical'
+  | 'webgl-animated'
+  | 'webgl-satellite'
+  | 'webgl-tactical'
+  | 'comparison';
+
 interface FlightHeaderBarProps {
   departureIata: string;
   arrivalIata: string;
@@ -30,9 +39,9 @@ interface FlightHeaderBarProps {
   durationMinutes: number;
   distanceMeters: number;
   preference: 'sun' | 'shade';
-  mapMode: '3d' | '2d';
+  engineMode: VisualEngineMode;
   onTogglePreference: (pref: 'sun' | 'shade') => void;
-  onToggleMapMode: (mode: '3d' | '2d') => void;
+  onSelectEngineMode: (mode: VisualEngineMode) => void;
   onSelectRoute: (dep: string, arr: string, durationMinutes: number) => void;
   onSwapRoute: () => void;
   onOpenRouteConfig: () => void;
@@ -47,9 +56,9 @@ export default function FlightHeaderBar({
   durationMinutes,
   distanceMeters,
   preference,
-  mapMode,
+  engineMode,
   onTogglePreference,
-  onToggleMapMode,
+  onSelectEngineMode,
   onSelectRoute,
   onSwapRoute,
   onOpenRouteConfig,
@@ -164,34 +173,115 @@ export default function FlightHeaderBar({
               </div>
             </div>
 
-            {/* 3D vs 2D View Mode Switcher */}
-            <div className="border-l border-white/10 pl-4 flex flex-col gap-1">
-              <div className="text-[10px] uppercase text-[var(--foreground-muted)] tracking-wider">
-                MAP ENGINE
+            {/* 6-Way Visual Engine Switcher + Live Comparison */}
+            <div className="border-l border-white/10 pl-4 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase text-[var(--foreground-muted)] tracking-wider">
+                  VISUAL ENGINE SWITCHER
+                </span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-zinc-800 text-[var(--cabin-cyan)] font-mono-numbers">
+                  6 MODES + COMPARE
+                </span>
               </div>
-              <div className="inline-flex p-1 rounded-xl bg-zinc-900 border border-white/10">
+
+              <div className="flex flex-wrap items-center gap-1">
+                {/* 1. 3JS 3D Animated */}
                 <button
                   type="button"
-                  onClick={() => onToggleMapMode('3d')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    mapMode === '3d'
-                      ? 'bg-zinc-800 text-[var(--cabin-cyan)] shadow-sm border border-sky-500/30'
-                      : 'text-zinc-400 hover:text-white'
+                  onClick={() => onSelectEngineMode('three-animated')}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold font-mono-numbers transition-all ${
+                    engineMode === 'three-animated'
+                      ? 'bg-emerald-950/80 text-[var(--alert-emerald)] border border-[var(--alert-emerald)] shadow-sm'
+                      : 'bg-zinc-900/80 text-zinc-400 hover:text-white border border-white/5'
                   }`}
+                  title="Three.js: Cel-shaded solid 3D Earth, solid vibrant continents & deep slate oceans (NO wireframe)"
                 >
-                  <IconGlobe size={13} />
-                  <span>3D GLOBE</span>
+                  [1. 3JS ANIM]
                 </button>
+
+                {/* 2. 3JS 3D Satellite */}
                 <button
                   type="button"
-                  onClick={() => onToggleMapMode('2d')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    mapMode === '2d'
-                      ? 'bg-zinc-800 text-white shadow-sm border border-zinc-600'
-                      : 'text-zinc-400 hover:text-white'
+                  onClick={() => onSelectEngineMode('three-satellite')}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold font-mono-numbers transition-all ${
+                    engineMode === 'three-satellite'
+                      ? 'bg-sky-950/80 text-[var(--cabin-cyan)] border border-[var(--cabin-cyan)] shadow-sm'
+                      : 'bg-zinc-900/80 text-zinc-400 hover:text-white border border-white/5'
                   }`}
+                  title="Three.js: NASA Blue Marble + Black Marble night lights + directional terminator"
                 >
-                  <span>2D MAP</span>
+                  [2. 3JS SAT]
+                </button>
+
+                {/* 3. 3JS 2D Tactical */}
+                <button
+                  type="button"
+                  onClick={() => onSelectEngineMode('three-tactical')}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold font-mono-numbers transition-all ${
+                    engineMode === 'three-tactical'
+                      ? 'bg-zinc-800 text-white border border-zinc-500 shadow-sm'
+                      : 'bg-zinc-900/80 text-zinc-400 hover:text-white border border-white/5'
+                  }`}
+                  title="Three.js / 2D Tactical equirectangular radar canvas"
+                >
+                  [3. 3JS TACT]
+                </button>
+
+                {/* 4. Native WebGL 3D Animated */}
+                <button
+                  type="button"
+                  onClick={() => onSelectEngineMode('webgl-animated')}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold font-mono-numbers transition-all ${
+                    engineMode === 'webgl-animated'
+                      ? 'bg-emerald-950/80 text-[var(--alert-emerald)] border border-[var(--alert-emerald)] shadow-sm'
+                      : 'bg-zinc-900/80 text-zinc-400 hover:text-white border border-white/5'
+                  }`}
+                  title="Pure WebGL: Cel-shaded solid 3D Earth with hemispherical solar illumination"
+                >
+                  [4. GL ANIM]
+                </button>
+
+                {/* 5. Native WebGL 3D Satellite */}
+                <button
+                  type="button"
+                  onClick={() => onSelectEngineMode('webgl-satellite')}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold font-mono-numbers transition-all ${
+                    engineMode === 'webgl-satellite'
+                      ? 'bg-sky-950/80 text-[var(--cabin-cyan)] border border-[var(--cabin-cyan)] shadow-sm'
+                      : 'bg-zinc-900/80 text-zinc-400 hover:text-white border border-white/5'
+                  }`}
+                  title="Pure WebGL: Raw GL shaders NASA satellite cartography"
+                >
+                  [5. GL SAT]
+                </button>
+
+                {/* 6. Native WebGL 2D Tactical */}
+                <button
+                  type="button"
+                  onClick={() => onSelectEngineMode('webgl-tactical')}
+                  className={`px-2 py-1 rounded-lg text-[10px] font-bold font-mono-numbers transition-all ${
+                    engineMode === 'webgl-tactical'
+                      ? 'bg-zinc-800 text-white border border-zinc-500 shadow-sm'
+                      : 'bg-zinc-900/80 text-zinc-400 hover:text-white border border-white/5'
+                  }`}
+                  title="Native WebGL: 2D Tactical equirectangular radar"
+                >
+                  [6. GL TACT]
+                </button>
+
+                {/* 7. Dynamic Live Comparison */}
+                <button
+                  type="button"
+                  onClick={() => onSelectEngineMode('comparison')}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono-numbers transition-all flex items-center gap-1 ${
+                    engineMode === 'comparison'
+                      ? 'bg-amber-950/80 text-[var(--solar-amber)] border border-[var(--solar-amber)] shadow-md shadow-amber-500/20'
+                      : 'bg-zinc-900/80 text-amber-400/80 hover:text-amber-300 border border-amber-500/30'
+                  }`}
+                  title="Dynamic Live Comparison: Dual-viewport split-screen with camera lockstep"
+                >
+                  <IconGlobe size={11} />
+                  <span>[LIVE COMPARE]</span>
                 </button>
               </div>
             </div>

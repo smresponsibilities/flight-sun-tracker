@@ -12,6 +12,8 @@ import { calculateSunPositionForFlight, type FlightRecommendation, type FlightDe
 import { IconCompass } from './AviationIcons';
 import { formatHeading, formatElevation } from '@/lib/solarTerminator';
 
+import { type VisualEngineMode } from './FlightHeaderBar';
+
 // Dynamically import Three.js 3D Earth Globe with client-side only rendering
 const ThreeGlobeView = dynamic(() => import('./ThreeGlobeView'), {
   ssr: false,
@@ -19,7 +21,33 @@ const ThreeGlobeView = dynamic(() => import('./ThreeGlobeView'), {
     <div className="cockpit-card rounded-xl p-8 border border-[var(--cockpit-border)] flex flex-col items-center justify-center min-h-[440px] text-center font-mono-numbers">
       <div className="w-8 h-8 border-2 border-[var(--cabin-cyan)] border-t-transparent rounded-full animate-spin mb-3" />
       <span className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
-        INITIALIZING 3D WEBGL EARTH GLOBE...
+        INITIALIZING 3D THREE.JS GLOBE HUD...
+      </span>
+    </div>
+  ),
+});
+
+// Dynamically import Pure Native WebGL Earth Globe with client-side only rendering
+const NativeWebGLGlobeView = dynamic(() => import('./NativeWebGLGlobeView'), {
+  ssr: false,
+  loading: () => (
+    <div className="cockpit-card rounded-xl p-8 border border-[var(--cockpit-border)] flex flex-col items-center justify-center min-h-[440px] text-center font-mono-numbers">
+      <div className="w-8 h-8 border-2 border-[var(--alert-emerald)] border-t-transparent rounded-full animate-spin mb-3" />
+      <span className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
+        INITIALIZING NATIVE WEBGL PIPELINE...
+      </span>
+    </div>
+  ),
+});
+
+// Dynamically import Dynamic Live Comparison View
+const LiveComparisonView = dynamic(() => import('./LiveComparisonView'), {
+  ssr: false,
+  loading: () => (
+    <div className="cockpit-card rounded-xl p-8 border border-[var(--cockpit-border)] flex flex-col items-center justify-center min-h-[440px] text-center font-mono-numbers">
+      <div className="w-8 h-8 border-2 border-[var(--solar-amber)] border-t-transparent rounded-full animate-spin mb-3" />
+      <span className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
+        INITIALIZING DYNAMIC LIVE COMPARISON...
       </span>
     </div>
   ),
@@ -46,12 +74,14 @@ export default function FlightSunTracker() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(5);
   const [isRouteModalOpen, setIsRouteModalOpen] = useState<boolean>(false);
-  const [mapMode, setMapMode] = useState<'3d' | '2d'>('2d');
+  const [engineMode, setEngineMode] = useState<VisualEngineMode>('three-animated');
 
-  // Preload 3D WebGL Globe code chunk and NASA textures in background while user interacts with 2D map
+  // Preload 3D WebGL Globe code chunk and NASA textures in background while user interacts with app
   useEffect(() => {
-    // Preload Three.js Globe chunk
+    // Preload chunks
     import('./ThreeGlobeView');
+    import('./NativeWebGLGlobeView');
+    import('./LiveComparisonView');
 
     // Pre-cache NASA textures in browser network cache
     if (typeof window !== 'undefined') {
@@ -60,6 +90,45 @@ export default function FlightSunTracker() {
       const img2 = new Image();
       img2.src = '/earth-night.jpg';
     }
+  }, []);
+
+  // Keyboard hotkeys: 1-6 switch visual engine modes, C toggles comparison, Space toggles play/pause
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is inside an input/textarea
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT')) {
+        return;
+      }
+
+      switch (e.key) {
+        case '1':
+          setEngineMode('three-animated');
+          break;
+        case '2':
+          setEngineMode('three-satellite');
+          break;
+        case '3':
+          setEngineMode('three-tactical');
+          break;
+        case '4':
+          setEngineMode('webgl-animated');
+          break;
+        case '5':
+          setEngineMode('webgl-satellite');
+          break;
+        case '6':
+          setEngineMode('webgl-tactical');
+          break;
+        case 'c':
+        case 'C':
+          setEngineMode((prev) => (prev === 'comparison' ? 'three-animated' : 'comparison'));
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   // Calculate recommendation and flight path data
@@ -166,6 +235,86 @@ export default function FlightSunTracker() {
   const currentTime = currentPoint?.time ? new Date(currentPoint.time) : flightDetails.departureTime;
   const isNight = currentSunElevation <= 0;
 
+  // Helper to render the active visual engine or comparison view
+  const renderVisualEngine = () => {
+    switch (engineMode) {
+      case 'three-animated':
+        return (
+          <ThreeGlobeView
+            departure={globeData.departure}
+            arrival={globeData.arrival}
+            flightPath={flightPath}
+            currentWaypoint={currentPoint}
+            currentTime={currentTime}
+            visualMode="animated"
+          />
+        );
+      case 'three-satellite':
+        return (
+          <ThreeGlobeView
+            departure={globeData.departure}
+            arrival={globeData.arrival}
+            flightPath={flightPath}
+            currentWaypoint={currentPoint}
+            currentTime={currentTime}
+            visualMode="satellite"
+          />
+        );
+      case 'three-tactical':
+        return (
+          <LightweightCanvasMap
+            departure={globeData.departure}
+            arrival={globeData.arrival}
+            flightPath={flightPath}
+            currentWaypoint={currentPoint}
+            currentTime={currentTime}
+          />
+        );
+      case 'webgl-animated':
+        return (
+          <NativeWebGLGlobeView
+            departure={globeData.departure}
+            arrival={globeData.arrival}
+            flightPath={flightPath}
+            currentWaypoint={currentPoint}
+            currentTime={currentTime}
+            visualMode="animated"
+          />
+        );
+      case 'webgl-satellite':
+        return (
+          <NativeWebGLGlobeView
+            departure={globeData.departure}
+            arrival={globeData.arrival}
+            flightPath={flightPath}
+            currentWaypoint={currentPoint}
+            currentTime={currentTime}
+            visualMode="satellite"
+          />
+        );
+      case 'webgl-tactical':
+        return (
+          <LightweightCanvasMap
+            departure={globeData.departure}
+            arrival={globeData.arrival}
+            flightPath={flightPath}
+            currentWaypoint={currentPoint}
+            currentTime={currentTime}
+          />
+        );
+      case 'comparison':
+        return (
+          <LiveComparisonView
+            departure={globeData.departure}
+            arrival={globeData.arrival}
+            flightPath={flightPath}
+            currentWaypoint={currentPoint}
+            currentTime={currentTime}
+          />
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#09090b] text-[var(--foreground)] selection:bg-[var(--solar-amber)] selection:text-black">
       {/* Cockpit HUD Scanlines background */}
@@ -173,7 +322,7 @@ export default function FlightSunTracker() {
 
       {/* Main Container */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-4 sm:py-6 lg:px-8">
-        {/* Top Executive Boarding Pass Header Bar */}
+        {/* Top Executive Boarding Pass Header Bar with 6-Way Engine Switcher */}
         <FlightHeaderBar
           departureIata={globeData.departure.iata}
           arrivalIata={globeData.arrival.iata}
@@ -183,9 +332,9 @@ export default function FlightSunTracker() {
           durationMinutes={flightDetails.durationMinutes}
           distanceMeters={globeData.totalDistance}
           preference={preference}
-          mapMode={mapMode}
+          engineMode={engineMode}
           onTogglePreference={handleTogglePreference}
-          onToggleMapMode={setMapMode}
+          onSelectEngineMode={setEngineMode}
           onSelectRoute={handleSelectRoute}
           onSwapRoute={handleSwapRoute}
           onOpenRouteConfig={() => setIsRouteModalOpen(true)}
@@ -204,27 +353,10 @@ export default function FlightSunTracker() {
             totalDurationMinutes={flightDetails.durationMinutes}
           />
 
-          {/* Cockpit HUD Two-Column Grid */}
+          {/* Cockpit HUD Grid: If comparison, give full width */}
           <div className="grid grid-cols-12 gap-6 items-start">
-            {/* Left Column (7 cols): Map (3D Globe or Default 2D Canvas) & Scrubber */}
-            <div className="col-span-12 lg:col-span-7 flex flex-col gap-4">
-              {mapMode === '3d' ? (
-                <ThreeGlobeView
-                  departure={globeData.departure}
-                  arrival={globeData.arrival}
-                  flightPath={flightPath}
-                  currentWaypoint={currentPoint}
-                  currentTime={currentTime}
-                />
-              ) : (
-                <LightweightCanvasMap
-                  departure={globeData.departure}
-                  arrival={globeData.arrival}
-                  flightPath={flightPath}
-                  currentWaypoint={currentPoint}
-                  currentTime={currentTime}
-                />
-              )}
+            <div className={engineMode === 'comparison' ? 'col-span-12 flex flex-col gap-4' : 'col-span-12 lg:col-span-7 flex flex-col gap-4'}>
+              {renderVisualEngine()}
 
               <FlightTimelineScrubber
                 flightPath={flightPath}
@@ -240,8 +372,8 @@ export default function FlightSunTracker() {
               />
             </div>
 
-            {/* Right Column (5 cols): Cabin Cross-Section & Live Telemetry HUD */}
-            <div className="col-span-12 lg:col-span-5 flex flex-col gap-4">
+            {/* Right Column (or Bottom Row when in comparison mode): Cabin Cross-Section & Live Telemetry HUD */}
+            <div className={engineMode === 'comparison' ? 'col-span-12 grid grid-cols-1 md:grid-cols-2 gap-4' : 'col-span-12 lg:col-span-5 flex flex-col gap-4'}>
               <CabinCrossSection
                 sunElevation={currentSunElevation}
                 relativeAzimuth={relativeAzimuth}
@@ -336,25 +468,9 @@ export default function FlightSunTracker() {
 
         {/* Mobile Viewport Layout: Responsive Bottom Sheet Pattern */}
         <div className="md:hidden flex flex-col gap-4">
-          {/* Top Half: Map & Scrubber */}
+          {/* Top Half: Map / Globe & Scrubber */}
           <div className="sticky top-0 z-20 bg-[#09090b] pt-1 pb-2">
-            {mapMode === '3d' ? (
-              <ThreeGlobeView
-                departure={globeData.departure}
-                arrival={globeData.arrival}
-                flightPath={flightPath}
-                currentWaypoint={currentPoint}
-                currentTime={currentTime}
-              />
-            ) : (
-              <LightweightCanvasMap
-                departure={globeData.departure}
-                arrival={globeData.arrival}
-                flightPath={flightPath}
-                currentWaypoint={currentPoint}
-                currentTime={currentTime}
-              />
-            )}
+            {renderVisualEngine()}
 
             <div className="mt-3">
               <FlightTimelineScrubber

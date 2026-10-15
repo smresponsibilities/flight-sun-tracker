@@ -7,12 +7,18 @@ import type { Airport, FlightPathPoint } from '@/lib/flightCalculator';
 import { getSubsolarPoint } from '@/lib/solarTerminator';
 import { IconPlane } from './AviationIcons';
 
+import { generateAnimatedEarthCanvas } from '@/lib/data/animatedEarthTexture';
+
 interface ThreeGlobeViewProps {
   departure: Airport;
   arrival: Airport;
   flightPath: FlightPathPoint[];
   currentWaypoint: FlightPathPoint | null;
   currentTime: Date;
+  visualMode?: 'satellite' | 'animated';
+  hideHeader?: boolean;
+  onCameraChange?: (pos: { x: number; y: number; z: number; targetX: number; targetY: number; targetZ: number }) => void;
+  syncCamera?: { x: number; y: number; z: number; targetX: number; targetY: number; targetZ: number } | null;
 }
 
 const GLOBE_RADIUS = 100;
@@ -136,9 +142,14 @@ export default function ThreeGlobeView({
   flightPath,
   currentWaypoint,
   currentTime,
+  visualMode = 'satellite',
+  hideHeader = false,
+  onCameraChange,
+  syncCamera,
 }: ThreeGlobeViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAutoTrack, setIsAutoTrack] = useState(false);
+  const isInternalCameraUpdate = useRef(false);
 
   // Scene references
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -244,6 +255,21 @@ export default function ThreeGlobeView({
     controls.zoomSpeed = 1.0;
     controlsRef.current = controls;
 
+    if (onCameraChange) {
+      controls.addEventListener('change', () => {
+        if (!isInternalCameraUpdate.current && cameraRef.current && controlsRef.current) {
+          onCameraChange({
+            x: cameraRef.current.position.x,
+            y: cameraRef.current.position.y,
+            z: cameraRef.current.position.z,
+            targetX: controlsRef.current.target.x,
+            targetY: controlsRef.current.target.y,
+            targetZ: controlsRef.current.target.z,
+          });
+        }
+      });
+    }
+
     // 5. Starfield background (800 points for crisp depth without GPU overhead)
     const starsGeo = new THREE.BufferGeometry();
     const starCount = 800;
@@ -267,16 +293,87 @@ export default function ThreeGlobeView({
     const starField = new THREE.Points(starsGeo, starsMat);
     scene.add(starField);
 
-    // 6. NASA Photorealistic Earth with Crisp Day/Night Terminator Shader (Zero Smear)
-    const textureLoader = new THREE.TextureLoader();
-    const dayTexture = textureLoader.load('/earth-blue-marble.jpg');
-    const nightTexture = textureLoader.load('/earth-night.jpg');
+    // 6. Earth Shader: Animated Solid Cel-Shaded vs NASA Satellite Cartography
+    let dayTexture: THREE.Texture;
+    let nightTexture: THREE.Texture | null = null;
 
-    dayTexture.colorSpace = THREE.SRGBColorSpace;
-    nightTexture.colorSpace = THREE.SRGBColorSpace;
+    if (visualMode === 'animated') {
+      const animCanvas = generateAnimatedEarthCanvas();
+      dayTexture = new THREE.CanvasTexture(animCanvas);
+      dayTexture.colorSpace = THREE.SRGBColorSpace;
+      earthUniformsRef.current.uDayTexture.value = dayTexture;
+    } else {
+      const textureLoader = new THREE.TextureLoader();
+      dayTexture = textureLoader.load('/earth-blue-marble.jpg');
+      nightTexture = textureLoader.load('/earth-night.jpg');
+      dayTexture.colorSpace = THREE.SRGBColorSpace;
+      nightTexture.colorSpace = THREE.SRGBColorSpace;
+      earthUniformsRef.current.uDayTexture.value = dayTexture;
+      earthUniformsRef.current.uNightTexture.value = nightTexture;
+    }
 
-    earthUniformsRef.current.uDayTexture.value = dayTexture;
-    earthUniformsRef.current.uNightTexture.value = nightTexture;
+    const earthFragmentShader = visualMode === 'animated' ? `
+      uniform sampler2D uDayTexture;
+      uniform vec3 uSunDirection;
+
+      varying vec3 vWorldNormal;
+      varying vec2 vUv;
+
+      void main() {
+        vec3 n = normalize(vWorldNormal);
+        vec3 s = normalize(uSunDirection);
+        float sunDot = dot(n, s);
+
+        // Realistic hemispherical solar illumination: exactly half daylight, half deep night shadow
+        float dayFactor = smoothstep(-0.02, 0.02, sunDot);
+
+        vec4 mapSample = texture2D(uDayTexture, vUv);
+
+        // Solid vibrant continents & deep slate oceans
+        vec3 dayColor = mapSample.rgb * (0.35 + 0.65 * max(0.0, sunDot));
+        vec3 nightColor = mapSample.rgb * 0.07 + vec3(0.01, 0.02, 0.04);
+
+        // Cel-shaded solar terminator rim
+        float rimZone = 1.0 - smoothstep(0.0, 0.03, abs(sunDot));
+        vec3 sunsetRim = vec3(1.0, 0.6, 0.2) * (rimZone * 0.18);
+
+        vec3 finalColor = mix(nightColor, dayColor, dayFactor) + sunsetRim;
+        gl_FragColor = vec4(finalColor, 1.0);
+      }
+    ` : `
+      uniform sampler2D uDayTexture;
+      uniform sampler2D uNightTexture;
+      uniform vec3 uSunDirection;
+
+      varying vec3 vWorldNormal;
+      varying vec2 vUv;
+
+      void main() {
+        vec3 n = normalize(vWorldNormal);
+        vec3 s = normalize(uSunDirection);
+        float sunDot = dot(n, s);
+
+        // Day factor: crisp terminator transition (-0.05 to +0.05)
+        float dayFactor = smoothstep(-0.05, 0.05, sunDot);
+
+        vec4 daySample = texture2D(uDayTexture, vUv);
+        vec4 nightSample = texture2D(uNightTexture, vUv);
+
+        // Sunlit day side: clean realistic cosine lighting
+        float diffuse = clamp(sunDot, 0.0, 1.0);
+        vec3 dayColor = daySample.rgb * (0.18 + 0.88 * diffuse);
+
+        // Subtle twilight golden rim strictly along terminator line
+        float rimZone = 1.0 - smoothstep(0.0, 0.05, abs(sunDot));
+        vec3 sunsetRim = vec3(1.0, 0.55, 0.15) * (rimZone * 0.22);
+
+        // Night side: night city lights against deep ocean
+        vec3 nightColor = nightSample.rgb * 1.5;
+
+        vec3 finalColor = mix(nightColor, dayColor, dayFactor) + sunsetRim;
+        gl_FragColor = vec4(finalColor, 1.0);
+      }
+    `;
 
     // Earth Custom Shader Material
     const earthMat = new THREE.ShaderMaterial({
@@ -294,40 +391,7 @@ export default function ThreeGlobeView({
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
         }
       `,
-      fragmentShader: `
-        uniform sampler2D uDayTexture;
-        uniform sampler2D uNightTexture;
-        uniform vec3 uSunDirection;
-
-        varying vec3 vWorldNormal;
-        varying vec2 vUv;
-
-        void main() {
-          vec3 n = normalize(vWorldNormal);
-          vec3 s = normalize(uSunDirection);
-          float sunDot = dot(n, s);
-
-          // Day factor: crisp terminator transition (-0.05 to +0.05)
-          float dayFactor = smoothstep(-0.05, 0.05, sunDot);
-
-          vec4 daySample = texture2D(uDayTexture, vUv);
-          vec4 nightSample = texture2D(uNightTexture, vUv);
-
-          // Sunlit day side: clean realistic cosine lighting
-          float diffuse = clamp(sunDot, 0.0, 1.0);
-          vec3 dayColor = daySample.rgb * (0.18 + 0.88 * diffuse);
-
-          // Subtle twilight golden rim strictly along terminator line
-          float rimZone = 1.0 - smoothstep(0.0, 0.05, abs(sunDot));
-          vec3 sunsetRim = vec3(1.0, 0.55, 0.15) * (rimZone * 0.22);
-
-          // Night side: night city lights against deep ocean
-          vec3 nightColor = nightSample.rgb * 1.5;
-
-          vec3 finalColor = mix(nightColor, dayColor, dayFactor) + sunsetRim;
-          gl_FragColor = vec4(finalColor, 1.0);
-        }
-      `,
+      fragmentShader: earthFragmentShader,
     });
 
     const globeGeo = new THREE.SphereGeometry(GLOBE_RADIUS, 48, 48);
@@ -457,7 +521,7 @@ export default function ThreeGlobeView({
       controls.dispose();
       renderer.dispose();
       dayTexture.dispose();
-      nightTexture.dispose();
+      if (nightTexture) nightTexture.dispose();
       earthMat.dispose();
       atmosphereMat.dispose();
       globeGeo.dispose();
@@ -466,7 +530,20 @@ export default function ThreeGlobeView({
         container.removeChild(renderer.domElement);
       }
     };
-  }, [departure, arrival]);
+  }, [departure, arrival, visualMode, onCameraChange]);
+
+  // Synchronize camera from external master state (for Live Comparison mode)
+  useEffect(() => {
+    if (!syncCamera || !cameraRef.current || !controlsRef.current) return;
+    isInternalCameraUpdate.current = true;
+    cameraRef.current.position.set(syncCamera.x, syncCamera.y, syncCamera.z);
+    controlsRef.current.target.set(syncCamera.targetX, syncCamera.targetY, syncCamera.targetZ);
+    controlsRef.current.update();
+    const t = setTimeout(() => {
+      isInternalCameraUpdate.current = false;
+    }, 30);
+    return () => clearTimeout(t);
+  }, [syncCamera]);
 
   // Update Flight Path Geodesic 3D Ribbon when flight path data changes
   useEffect(() => {
@@ -618,41 +695,43 @@ export default function ThreeGlobeView({
   return (
     <div className="cockpit-card rounded-xl border border-[var(--cockpit-border)] relative overflow-hidden flex flex-col shadow-2xl">
       {/* 3D Viewport Header Bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--cockpit-border)] bg-zinc-950/85 backdrop-blur-md z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-[var(--alert-emerald)] animate-pulse" />
-          <span className="text-xs font-mono-numbers font-bold uppercase tracking-wider text-white">
-            3D EARTH GLOBE HUD [THREE.JS]
-          </span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-[var(--cabin-cyan)] font-mono-numbers font-medium">
-            NASA SATELLITE CARTOGRAPHY
-          </span>
-        </div>
+      {!hideHeader && (
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--cockpit-border)] bg-zinc-950/85 backdrop-blur-md z-10">
+          <div className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full bg-[var(--alert-emerald)] animate-pulse" />
+            <span className="text-xs font-mono-numbers font-bold uppercase tracking-wider text-white">
+              3D EARTH GLOBE HUD [THREE.JS]
+            </span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-[var(--cabin-cyan)] font-mono-numbers font-medium">
+              {visualMode === 'animated' ? 'CEL-SHADED SOLID CONTINENTS' : 'NASA SATELLITE CARTOGRAPHY'}
+            </span>
+          </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setIsAutoTrack(!isAutoTrack)}
-            className={`px-2.5 py-1 rounded text-[11px] font-mono-numbers font-bold transition-all flex items-center gap-1.5 ${
-              isAutoTrack
-                ? 'bg-[var(--alert-emerald)] text-black shadow-lg shadow-emerald-500/20'
-                : 'bg-zinc-900 text-zinc-300 hover:bg-zinc-800 border border-[var(--cockpit-border)]'
-            }`}
-          >
-            <IconPlane size={12} className={isAutoTrack ? 'text-black' : 'text-zinc-400'} />
-            <span>{isAutoTrack ? '[TRACKING ON]' : '[AUTO-TRACK]'}</span>
-          </button>
+          {/* Action Controls */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsAutoTrack(!isAutoTrack)}
+              className={`px-2.5 py-1 rounded text-[11px] font-mono-numbers font-bold transition-all flex items-center gap-1.5 ${
+                isAutoTrack
+                  ? 'bg-[var(--alert-emerald)] text-black shadow-lg shadow-emerald-500/20'
+                  : 'bg-zinc-900 text-zinc-300 hover:bg-zinc-800 border border-[var(--cockpit-border)]'
+              }`}
+            >
+              <IconPlane size={12} className={isAutoTrack ? 'text-black' : 'text-zinc-400'} />
+              <span>{isAutoTrack ? '[TRACKING ON]' : '[AUTO-TRACK]'}</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={handleResetRouteView}
-            className="px-2.5 py-1 rounded text-[11px] font-mono-numbers font-medium bg-zinc-900 text-zinc-300 hover:bg-zinc-800 border border-[var(--cockpit-border)] transition-colors"
-          >
-            [FRAME ROUTE]
-          </button>
+            <button
+              type="button"
+              onClick={handleResetRouteView}
+              className="px-2.5 py-1 rounded text-[11px] font-mono-numbers font-medium bg-zinc-900 text-zinc-300 hover:bg-zinc-800 border border-[var(--cockpit-border)] transition-colors"
+            >
+              [FRAME ROUTE]
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Three.js Canvas Container */}
       <div

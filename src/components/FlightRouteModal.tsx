@@ -74,7 +74,7 @@ export default function FlightRouteModal({
             onClick={onClose}
             className="w-8 h-8 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center font-mono-numbers text-sm border border-[var(--cockpit-border)]"
           >
-            ✕
+            [X]
           </button>
         </div>
 

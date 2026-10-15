@@ -252,7 +252,7 @@
 }
 
 .toastIcon::before {
-  content: '✓';
+  content: '[OK]';
   color: white;
   font-weight: bold;
 }
@@ -270,7 +270,7 @@
 }
 
 .errorToastIcon::before {
-  content: '✗';
+  content: '[ERR]';
   color: white;
   font-weight: bold;
 }
