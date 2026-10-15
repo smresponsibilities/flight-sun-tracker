@@ -46,7 +46,21 @@ export default function FlightSunTracker() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(5);
   const [isRouteModalOpen, setIsRouteModalOpen] = useState<boolean>(false);
-  const [mapMode, setMapMode] = useState<'3d' | '2d'>('3d');
+  const [mapMode, setMapMode] = useState<'3d' | '2d'>('2d');
+
+  // Preload 3D WebGL Globe code chunk and NASA textures in background while user interacts with 2D map
+  useEffect(() => {
+    // Preload Three.js Globe chunk
+    import('./ThreeGlobeView');
+
+    // Pre-cache NASA textures in browser network cache
+    if (typeof window !== 'undefined') {
+      const img1 = new Image();
+      img1.src = '/earth-blue-marble.jpg';
+      const img2 = new Image();
+      img2.src = '/earth-night.jpg';
+    }
+  }, []);
 
   // Calculate recommendation and flight path data
   const result: FlightRecommendation = useMemo(() => {
