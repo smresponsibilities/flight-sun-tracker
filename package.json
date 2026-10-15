@@ -14,6 +14,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@types/cesium": "^1.67.14",
     "@types/suncalc": "^1.9.2",
+    "@types/three": "^0.186.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns-tz": "^3.2.0",
@@ -25,7 +26,8 @@
     "react-globe.gl": "^2.34.0",
     "resium": "^1.17.2",
     "suncalc": "^1.9.0",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

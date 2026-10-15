@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import FlightHeaderBar from './FlightHeaderBar';
 import HeroVerdictBanner from './HeroVerdictBanner';
 import CabinCrossSection from './CabinCrossSection';
@@ -10,6 +11,19 @@ import FlightRouteModal from './FlightRouteModal';
 import { calculateSunPositionForFlight, type FlightRecommendation, type FlightDetails } from '@/lib/flightCalculator';
 import { IconCompass } from './AviationIcons';
 import { formatHeading, formatElevation } from '@/lib/solarTerminator';
+
+// Dynamically import Three.js 3D Earth Globe with client-side only rendering
+const ThreeGlobeView = dynamic(() => import('./ThreeGlobeView'), {
+  ssr: false,
+  loading: () => (
+    <div className="cockpit-card rounded-xl p-8 border border-[var(--cockpit-border)] flex flex-col items-center justify-center min-h-[440px] text-center font-mono-numbers">
+      <div className="w-8 h-8 border-2 border-[var(--cabin-cyan)] border-t-transparent rounded-full animate-spin mb-3" />
+      <span className="text-xs text-[var(--foreground-muted)] uppercase tracking-wider">
+        INITIALIZING 3D WEBGL EARTH GLOBE...
+      </span>
+    </div>
+  ),
+});
 
 // Default initial flight: JFK -> LHR daytime transatlantic
 function getInitialFlight(): FlightDetails {
@@ -32,6 +46,7 @@ export default function FlightSunTracker() {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(5);
   const [isRouteModalOpen, setIsRouteModalOpen] = useState<boolean>(false);
+  const [mapMode, setMapMode] = useState<'3d' | '2d'>('3d');
 
   // Calculate recommendation and flight path data
   const result: FlightRecommendation = useMemo(() => {
@@ -77,7 +92,7 @@ export default function FlightSunTracker() {
   // Custom Route Apply Handler
   const handleApplyRoute = useCallback((source: string, dest: string, depTimeStr: string, durationStr: string) => {
     const depTime = new Date(depTimeStr);
-    
+
     // Parse duration string to minutes
     let durationMins = 420;
     const matchH = durationStr.match(/(\d+)\s*h(?:ours?)?/i);
@@ -120,7 +135,9 @@ export default function FlightSunTracker() {
           durationMinutes={flightDetails.durationMinutes}
           distanceMeters={globeData.totalDistance}
           preference={preference}
+          mapMode={mapMode}
           onTogglePreference={handleTogglePreference}
+          onToggleMapMode={setMapMode}
           onSelectRoute={handleSelectRoute}
           onOpenRouteConfig={() => setIsRouteModalOpen(true)}
         />
@@ -140,15 +157,25 @@ export default function FlightSunTracker() {
 
           {/* Cockpit HUD Two-Column Grid */}
           <div className="grid grid-cols-12 gap-6 items-start">
-            {/* Left Column (7 cols): Lightweight Canvas Map & Scrubber */}
+            {/* Left Column (7 cols): Map (3D Globe or Default 2D Canvas) & Scrubber */}
             <div className="col-span-12 lg:col-span-7 flex flex-col gap-4">
-              <LightweightCanvasMap
-                departure={globeData.departure}
-                arrival={globeData.arrival}
-                flightPath={flightPath}
-                currentWaypoint={currentPoint}
-                currentTime={currentTime}
-              />
+              {mapMode === '3d' ? (
+                <ThreeGlobeView
+                  departure={globeData.departure}
+                  arrival={globeData.arrival}
+                  flightPath={flightPath}
+                  currentWaypoint={currentPoint}
+                  currentTime={currentTime}
+                />
+              ) : (
+                <LightweightCanvasMap
+                  departure={globeData.departure}
+                  arrival={globeData.arrival}
+                  flightPath={flightPath}
+                  currentWaypoint={currentPoint}
+                  currentTime={currentTime}
+                />
+              )}
 
               <FlightTimelineScrubber
                 flightPath={flightPath}
@@ -260,15 +287,25 @@ export default function FlightSunTracker() {
 
         {/* Mobile Viewport Layout: Responsive Bottom Sheet Pattern */}
         <div className="md:hidden flex flex-col gap-4">
-          {/* Top Half: Lightweight Map & Scrubber */}
+          {/* Top Half: Map & Scrubber */}
           <div className="sticky top-0 z-20 bg-[#09090b] pt-1 pb-2">
-            <LightweightCanvasMap
-              departure={globeData.departure}
-              arrival={globeData.arrival}
-              flightPath={flightPath}
-              currentWaypoint={currentPoint}
-              currentTime={currentTime}
-            />
+            {mapMode === '3d' ? (
+              <ThreeGlobeView
+                departure={globeData.departure}
+                arrival={globeData.arrival}
+                flightPath={flightPath}
+                currentWaypoint={currentPoint}
+                currentTime={currentTime}
+              />
+            ) : (
+              <LightweightCanvasMap
+                departure={globeData.departure}
+                arrival={globeData.arrival}
+                flightPath={flightPath}
+                currentWaypoint={currentPoint}
+                currentTime={currentTime}
+              />
+            )}
 
             <div className="mt-3">
               <FlightTimelineScrubber
